@@ -1,7 +1,7 @@
 # 06 · What a vector is
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> Numbers, variables and expressions (<a href="../module-01/lesson-01.md">01 · Numbers and variables</a>), and the notation for subscripts, indices and superscripts (<a href="../module-01/lesson-05.md">05 · Reading mathematical notation</a>).</p>
+<p><strong>Prerequisites:</strong> Numbers, variables and expressions (<a href="#/lessons/module-01/lesson-01">01 · Numbers and variables</a>), and the notation for subscripts, indices and superscripts (<a href="#/lessons/module-01/lesson-05">05 · Reading mathematical notation</a>).</p>
 <p><strong>You will learn:</strong> The three complementary ways to read a vector — an ordered list of numbers, a point in space, and an arrow with direction and magnitude — plus dimension, indexing, and the difference between a mathematical vector, a Python list, and a PyTorch tensor.</p>
 <p><strong>Why this matters for ML:</strong> Everything a GPT touches — a token, a word, a hidden state — is a vector. Before you can understand attention or a linear layer, you need to be completely fluent in what a vector <em>is</em> and how PyTorch stores one.</p>
 </div>
@@ -176,4 +176,4 @@ At that layer the token is represented by 768 real numbers — a single point (o
 
 You can now name a vector's parts and store one as a tensor. Next we make vectors *do* something: adding them, scaling them, and the single most important operation in a neural network — the **dot product**.
 
-→ [07 · Adding, scaling, and the dot product](lesson-02.md)
+→ [07 · Adding, scaling, and the dot product](lessons/module-02/lesson-02.md)

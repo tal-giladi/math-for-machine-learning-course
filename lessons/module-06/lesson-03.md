@@ -1,14 +1,14 @@
 # 17 · Derivatives of exp, log, sigmoid, softmax
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-02.md">16 · Derivative rules and the chain rule</a> (power, quotient, and chain rules) and <a href="../module-01/lesson-03.md">03 · Powers, roots, exponentials, logarithms</a> for what $e^x$ and $\ln x$ mean.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-06/lesson-02">16 · Derivative rules and the chain rule</a> (power, quotient, and chain rules) and <a href="#/lessons/module-01/lesson-03">03 · Powers, roots, exponentials, logarithms</a> for what $e^x$ and $\ln x$ mean.</p>
 <p><strong>You will learn:</strong> the derivatives of the four functions that appear in every neural network's forward pass — the exponential $e^x$, the natural logarithm $\ln x$, the <strong>sigmoid</strong> $\sigma(x)$ (derived in full), and the <strong>softmax</strong> (with its Jacobian derived and worked numerically).</p>
 <p><strong>Why this matters for ML:</strong> sigmoid and softmax are the nonlinearities that turn raw network scores into probabilities, and $e^x$/$\ln x$ are their building blocks and the core of the cross-entropy loss. Their derivatives appear in <em>every</em> backward pass, so knowing them by hand demystifies what autograd computes.</p>
 </div>
 
 ## 1. The exponential: its own derivative
 
-The natural exponential $e^x$ (where $e \approx 2.71828$ is Euler's number, introduced in [module 1](../module-01/lesson-03.md)) has the remarkable property that differentiating it changes nothing:
+The natural exponential $e^x$ (where $e \approx 2.71828$ is Euler's number, introduced in [module 1](lessons/module-01/lesson-03.md)) has the remarkable property that differentiating it changes nothing:
 
 $$
 \frac{d}{dx}\,e^x = e^x
@@ -120,7 +120,7 @@ $$
 - $\sum_{k=1}^{K} e^{z_k}$ — the normalizer: the sum of all exponentials, which forces the outputs to add to $1$.
 - $K$ — the number of scores (the vocabulary size $V$ in a language model).
 
-Write $s_i = \operatorname{softmax}(\mathbf{z})_i$ for short. Because output $s_i$ depends on *every* input $z_j$ (they all sit in the shared denominator), there is not one derivative but a whole grid of them — the **Jacobian**, a matrix of partial derivatives $\partial s_i / \partial z_j$ (partial derivatives are the subject of [lesson 4](lesson-04.md); here we just need the pattern). The result is
+Write $s_i = \operatorname{softmax}(\mathbf{z})_i$ for short. Because output $s_i$ depends on *every* input $z_j$ (they all sit in the shared denominator), there is not one derivative but a whole grid of them — the **Jacobian**, a matrix of partial derivatives $\partial s_i / \partial z_j$ (partial derivatives are the subject of [lesson 4](lessons/module-06/lesson-04.md); here we just need the pattern). The result is
 
 $$
 \frac{\partial s_i}{\partial z_j} = s_i\big(\delta_{ij} - s_j\big),
@@ -223,7 +223,7 @@ print(z.grad)              # tensor([ 0.1966, -0.1966])
 
 For the sigmoid, the forward pass stores the *output* $0.5$ on the node `y` (with `grad_fn=<SigmoidBackward0>`), not just the input. That is deliberate: the derivative rule $\sigma' = \sigma(1-\sigma)$ needs only the output, so `SigmoidBackward0` reads the saved output $s$ and returns $s(1-s) = 0.5 \cdot 0.5 = 0.25$ — no re-exponentiation required. This is a recurring autograd theme: an operation caches whichever forward values make its backward cheapest.
 
-For softmax the backward node holds the full output vector $\mathbf{s}$ and applies the Jacobian rule $s_i(\delta_{ij} - s_j)$. When you called `s[0].backward()`, PyTorch effectively pushed the vector $(1, 0)$ (select the first output) back through that Jacobian, which extracts its first row — giving `z.grad = [0.1966, -0.1966]`. This "push a vector back through a Jacobian" operation is the **vector–Jacobian product** at the heart of reverse-mode autograd; you will meet it formally when we generalize the chain rule to vectors in [module 7](../module-07/lesson-01.md). The key point for now: autograd never builds the giant $V \times V$ softmax Jacobian for a real vocabulary — it only ever multiplies a vector *through* it, which is far cheaper.
+For softmax the backward node holds the full output vector $\mathbf{s}$ and applies the Jacobian rule $s_i(\delta_{ij} - s_j)$. When you called `s[0].backward()`, PyTorch effectively pushed the vector $(1, 0)$ (select the first output) back through that Jacobian, which extracts its first row — giving `z.grad = [0.1966, -0.1966]`. This "push a vector back through a Jacobian" operation is the **vector–Jacobian product** at the heart of reverse-mode autograd; you will meet it formally when we generalize the chain rule to vectors in [module 7](lessons/module-07/lesson-01.md). The key point for now: autograd never builds the giant $V \times V$ softmax Jacobian for a real vocabulary — it only ever multiplies a vector *through* it, which is far cheaper.
 
 ## Check yourself
 
@@ -255,4 +255,4 @@ Because the softmax outputs always sum to $1$. Changing a single logit $z_j$ can
 
 You can now differentiate the nonlinearities that end a network's forward pass. But real losses depend on *many* variables at once — every weight in the model — so we need derivatives with respect to one variable while the others are held fixed. That is the partial derivative, and collecting all of them gives the gradient: the vector that training walks downhill.
 
-Continue to [18 · Partial derivatives and the gradient](lesson-04.md).
+Continue to [18 · Partial derivatives and the gradient](lessons/module-06/lesson-04.md).

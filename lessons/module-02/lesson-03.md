@@ -1,7 +1,7 @@
 # 08 · Norm, unit vectors, cosine, projection
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-02.md">07 · Adding, scaling, and the dot product</a> (you must be comfortable computing $\mathbf{x}\cdot\mathbf{w}$), and square roots / powers from <a href="../module-01/lesson-03.md">03 · Powers, roots and summation</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-02/lesson-02">07 · Adding, scaling, and the dot product</a> (you must be comfortable computing $\mathbf{x}\cdot\mathbf{w}$), and square roots / powers from <a href="#/lessons/module-01/lesson-03">03 · Powers, roots and summation</a>.</p>
 <p><strong>You will learn:</strong> How to measure a vector's length (the norm), how to shrink it to length 1 (normalization and unit vectors), how to measure the angle between two vectors (cosine similarity), and how to project one vector onto another — all worked by hand and checked in PyTorch.</p>
 <p><strong>Why this matters for ML:</strong> Cosine similarity is how models compare embeddings and how attention decides what is "related." Normalization to a fixed length is the core idea inside LayerNorm and RMSNorm, which keep GPT training numerically stable. These are not abstractions — they are lines of Transformer code.</p>
 </div>
@@ -256,4 +256,4 @@ Cosine similarity is exactly the dot product of the two normalized vectors: $\co
 
 You have finished vectors: what they are, how to combine them, and how to measure their lengths and angles. Every one of these operations was really about *one* vector at a time or a pair. The next module stacks vectors into a grid — a **matrix** — and shows how matrix-vector multiplication is just a batch of dot products, which is the exact shape of a neural-network linear layer.
 
-→ [Module 3 · Matrices](../module-03/lesson-01.md)
+→ [Module 3 · Matrices](lessons/module-03/lesson-01.md)

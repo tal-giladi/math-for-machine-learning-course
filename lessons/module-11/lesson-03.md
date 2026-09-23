@@ -1,14 +1,14 @@
 # 34 · Normalization: LayerNorm & RMSNorm
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> mean, variance, and standard deviation from <a href="../module-10/lesson-01.md">the probability & statistics module</a>; the Transformer block from <a href="lesson-02.md">33 · The Transformer block</a>, which used LayerNorm as a black box; element-wise operations and the feature axis $C$ from <a href="../module-04/lesson-02.md">module 4</a>; the fan-out/branching gradient rule from <a href="../module-07/lesson-01.md">module 7</a>.</p>
+<p><strong>Prerequisites:</strong> mean, variance, and standard deviation from <a href="#/lessons/module-10/lesson-01">the probability & statistics module</a>; the Transformer block from <a href="#/lessons/module-11/lesson-02">33 · The Transformer block</a>, which used LayerNorm as a black box; element-wise operations and the feature axis $C$ from <a href="#/lessons/module-04/lesson-02">module 4</a>; the fan-out/branching gradient rule from <a href="#/lessons/module-07/lesson-01">module 7</a>.</p>
 <p><strong>You will learn:</strong> exactly what LayerNorm computes — mean, variance, standardize, then a learned scale and shift — worked by hand on $x = [1, 2, 3]$; what the $\varepsilon$ term is for; what RMSNorm does differently (no mean subtraction, no bias) and why it still works; which axis normalization runs over; and how each appears in PyTorch, matching the hand numbers.</p>
 <p><strong>Why this matters for ML:</strong> normalization is what keeps a deep Transformer's activations at a usable scale from the first block to the last. LayerNorm is in every GPT-2 block; RMSNorm is its leaner replacement in LLaMA and most recent LLMs. Both are direct applications of the mean/variance statistics you already know.</p>
 </div>
 
 ## 1. Recap: mean, variance, standard deviation
 
-From [the statistics module](../module-10/lesson-01.md), for a list of numbers $x = (x_1, \dots, x_n)$:
+From [the statistics module](lessons/module-10/lesson-01.md), for a list of numbers $x = (x_1, \dots, x_n)$:
 
 - The **mean** $\mu$ is the average: $\mu = \frac{1}{n}\sum_{i=1}^{n} x_i$.
 - The **variance** $\sigma^2$ is the average squared distance from the mean: $\sigma^2 = \frac{1}{n}\sum_{i=1}^{n}(x_i - \mu)^2$. (This is the *population*, or *biased*, variance — divide by $n$, not $n-1$. Normalization layers use this version.)
@@ -179,7 +179,7 @@ Both snippets print exactly the hand-computed vectors. For a real $(B, T, C)$ ac
 
 ## 9. What PyTorch is doing under the hood
 
-**The backward pass couples all $C$ features.** In a plain element-wise layer, the gradient of output $y_i$ depends only on input $x_i$. LayerNorm is different: because $\mu$ and $\sigma$ are computed from *all* $C$ features, every output $y_i$ depends on *every* input $x_j$. So during backprop, the gradient with respect to one input $x_j$ gathers contributions routed through the shared $\mu$ and $\sigma^2$ from all $C$ outputs — a fan-out through the shared statistics, summed exactly as the branching rule of [module 7](../module-07/lesson-01.md) prescribes. This is why LayerNorm's backward formula is more involved than a simple activation's: it must account for how nudging one feature shifts the mean and variance that scale *all* the features. Autograd's `NativeLayerNormBackward` implements this coupled derivative for you; `loss.backward()` computes gradients for $x$, $\gamma$, and $\beta$ automatically. RMSNorm's backward is similar but simpler — it couples through only the shared RMS, with no mean term and no $\beta$ gradient.
+**The backward pass couples all $C$ features.** In a plain element-wise layer, the gradient of output $y_i$ depends only on input $x_i$. LayerNorm is different: because $\mu$ and $\sigma$ are computed from *all* $C$ features, every output $y_i$ depends on *every* input $x_j$. So during backprop, the gradient with respect to one input $x_j$ gathers contributions routed through the shared $\mu$ and $\sigma^2$ from all $C$ outputs — a fan-out through the shared statistics, summed exactly as the branching rule of [module 7](lessons/module-07/lesson-01.md) prescribes. This is why LayerNorm's backward formula is more involved than a simple activation's: it must account for how nudging one feature shifts the mean and variance that scale *all* the features. Autograd's `NativeLayerNormBackward` implements this coupled derivative for you; `loss.backward()` computes gradients for $x$, $\gamma$, and $\beta$ automatically. RMSNorm's backward is similar but simpler — it couples through only the shared RMS, with no mean term and no $\beta$ gradient.
 
 **No running statistics.** LayerNorm and RMSNorm compute their statistics fresh from the current input every forward pass, and they behave identically in training and inference. This is unlike **BatchNorm**, which normalizes over the *batch* axis and must maintain running averages of the mean and variance to use at inference — a dependence on batch composition that LayerNorm's per-token design deliberately avoids, which is one reason Transformers use LayerNorm rather than BatchNorm.
 
@@ -213,4 +213,4 @@ Because $\mu$ and $\sigma^2$ are computed from all $C$ features, every output de
 
 You now understand every component of a Transformer block down to its arithmetic: attention, the residual, the MLP with GELU, and both flavors of normalization. What you have not yet seen is *why* all this careful scaling and residual structure is necessary — what actually goes wrong in deep networks without it. That is the numerical-stability story: saturating softmax, vanishing and exploding gradients, and the tricks (stable softmax, the $\varepsilon$ terms you just met, gradient clipping) that keep training alive.
 
-Continue to [Module 12 · Numerical stability](../module-12/lesson-01.md).
+Continue to [Module 12 · Numerical stability](lessons/module-12/lesson-01.md).

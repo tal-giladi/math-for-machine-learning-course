@@ -1,7 +1,7 @@
 # 23 · The linear layer, forward and backward by hand
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-07/lesson-01.md">19 · The chain rule as a graph</a>, <a href="../module-07/lesson-03.md">21 · Vector-Jacobian products</a>, and <a href="../module-07/lesson-04.md">22 · Backprop identities for a linear layer</a> (the four gradient rules we will reuse). You also need the sigmoid and its derivative from <a href="../module-06/lesson-03.md">17 · Derivatives of exp, log, sigmoid, softmax</a>, and matrix-vector products from <a href="../module-03/lesson-01.md">the matrices module</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-07/lesson-01">19 · The chain rule as a graph</a>, <a href="#/lessons/module-07/lesson-03">21 · Vector-Jacobian products</a>, and <a href="#/lessons/module-07/lesson-04">22 · Backprop identities for a linear layer</a> (the four gradient rules we will reuse). You also need the sigmoid and its derivative from <a href="#/lessons/module-06/lesson-03">17 · Derivatives of exp, log, sigmoid, softmax</a>, and matrix-vector products from <a href="#/lessons/module-03/lesson-01">the matrices module</a>.</p>
 <p><strong>You will learn:</strong> how to run an entire neural network — a 2→2→1 network with one hidden layer — <strong>forward and backward, by hand</strong>, computing every activation and every parameter gradient with real numbers, and then how to reproduce the exact same numbers in PyTorch with <code>loss.backward()</code>.</p>
 <p><strong>Why this matters for ML:</strong> this is the milestone the last three modules were building toward. Everything GPT-2 does in training is this same forward-then-backward loop, just with more layers and bigger matrices. Once you have done it once by hand and watched PyTorch agree to four decimal places, <code>.backward()</code> stops being magic forever.</p>
 </div>
@@ -28,7 +28,7 @@ y = z2       (1 output, no activation)
 L            (1 number)
 ```
 
-Every arrow is a function. The whole network is one big composition of functions — exactly the picture from [module 5](../module-05/lesson-01.md) — and the loss $L$ is a single number at the end that says how wrong we are. Training will eventually nudge the parameters to make $L$ smaller, but first we must be able to (a) compute $L$ from the inputs (the **forward pass**) and (b) compute the gradient of $L$ with respect to every parameter (the **backward pass**). This lesson does both, by hand.
+Every arrow is a function. The whole network is one big composition of functions — exactly the picture from [module 5](lessons/module-05/lesson-01.md) — and the loss $L$ is a single number at the end that says how wrong we are. Training will eventually nudge the parameters to make $L$ smaller, but first we must be able to (a) compute $L$ from the inputs (the **forward pass**) and (b) compute the gradient of $L$ with respect to every parameter (the **backward pass**). This lesson does both, by hand.
 
 ### 1.1 The exact numbers
 
@@ -43,7 +43,7 @@ So that you can check every digit — and so PyTorch produces the identical outp
 | $b_2$ | layer-2 bias | scalar | $0.10$ |
 | $t$ | target | scalar | $1.0$ |
 
-The activation on the hidden layer is the **sigmoid**, $\sigma(u) = \dfrac{1}{1 + e^{-u}}$, from [lesson 17](../module-06/lesson-03.md). The output has no activation (a "linear" output). The loss is the squared error $L = (y - t)^2$; we will see in section 6 that this matches `torch.nn.MSELoss` on a single element, and that its derivative is $\dfrac{\partial L}{\partial y} = 2(y - t)$.
+The activation on the hidden layer is the **sigmoid**, $\sigma(u) = \dfrac{1}{1 + e^{-u}}$, from [lesson 17](lessons/module-06/lesson-03.md). The output has no activation (a "linear" output). The loss is the squared error $L = (y - t)^2$; we will see in section 6 that this matches `torch.nn.MSELoss` on a single element, and that its derivative is $\dfrac{\partial L}{\partial y} = 2(y - t)$.
 
 ## 2. Forward pass, by hand
 
@@ -122,9 +122,9 @@ The forward pass is done. In summary:
 
 ## 3. The backward pass: the plan
 
-The backward pass computes $\dfrac{\partial L}{\partial(\text{each parameter})}$. We do it by walking the pipeline **in reverse**, carrying a running derivative of $L$ with respect to whatever quantity we are currently standing on. That running quantity — "$\partial L$ divided by the thing here" — is called the **upstream gradient**, and each layer's job is to turn the upstream gradient on its output into the upstream gradient on its input, picking off the parameter gradients along the way. This is exactly the chain-rule-over-a-graph procedure from [lesson 19](../module-07/lesson-01.md).
+The backward pass computes $\dfrac{\partial L}{\partial(\text{each parameter})}$. We do it by walking the pipeline **in reverse**, carrying a running derivative of $L$ with respect to whatever quantity we are currently standing on. That running quantity — "$\partial L$ divided by the thing here" — is called the **upstream gradient**, and each layer's job is to turn the upstream gradient on its output into the upstream gradient on its input, picking off the parameter gradients along the way. This is exactly the chain-rule-over-a-graph procedure from [lesson 19](lessons/module-07/lesson-01.md).
 
-We reuse four identities, each derived in [lesson 22](../module-07/lesson-04.md). For a linear layer $\mathbf{z} = \mathbf{W}\mathbf{a} + \mathbf{b}$ with upstream gradient $\dfrac{\partial L}{\partial \mathbf{z}}$:
+We reuse four identities, each derived in [lesson 22](lessons/module-07/lesson-04.md). For a linear layer $\mathbf{z} = \mathbf{W}\mathbf{a} + \mathbf{b}$ with upstream gradient $\dfrac{\partial L}{\partial \mathbf{z}}$:
 
 $$
 \frac{\partial L}{\partial \mathbf{W}} = \frac{\partial L}{\partial \mathbf{z}}\,\mathbf{a}^\top, \qquad
@@ -138,7 +138,7 @@ $$
 \frac{\partial L}{\partial \mathbf{z}} = \frac{\partial L}{\partial \mathbf{a}} \odot \mathbf{a}\odot(1 - \mathbf{a}),
 $$
 
-where $\odot$ is the element-wise (Hadamard) product. The **shape rule** from [lesson 18](../module-06/lesson-04.md) will be our safety check: every gradient has the same shape as the thing it is the gradient of. $\dfrac{\partial L}{\partial \mathbf{W}_1}$ is $(2,2)$, $\dfrac{\partial L}{\partial b_2}$ is a scalar, and so on.
+where $\odot$ is the element-wise (Hadamard) product. The **shape rule** from [lesson 18](lessons/module-06/lesson-04.md) will be our safety check: every gradient has the same shape as the thing it is the gradient of. $\dfrac{\partial L}{\partial \mathbf{W}_1}$ is $(2,2)$, $\dfrac{\partial L}{\partial b_2}$ is a scalar, and so on.
 
 ## 4. Backward pass, by hand
 
@@ -320,11 +320,11 @@ They agree because PyTorch is running *the same chain rule you just ran by hand*
 
 Three things happened, and each has a name you will meet constantly.
 
-**Leaf tensors.** The four tensors you created with `requires_grad=True` (`W1, b1, W2, b2`) are **leaf tensors**: parameters at the edge of the graph, not computed from anything else. They are the only tensors that get a `.grad` populated by default. Intermediate results like `z1` and `a1` are non-leaf; PyTorch computes gradients *through* them but does not keep those gradients unless you ask (that is `retain_grad`, covered in [lesson 25](lesson-03.md)).
+**Leaf tensors.** The four tensors you created with `requires_grad=True` (`W1, b1, W2, b2`) are **leaf tensors**: parameters at the edge of the graph, not computed from anything else. They are the only tensors that get a `.grad` populated by default. Intermediate results like `z1` and `a1` are non-leaf; PyTorch computes gradients *through* them but does not keep those gradients unless you ask (that is `retain_grad`, covered in [lesson 25](lessons/module-08/lesson-03.md)).
 
 **The graph.** As the forward pass runs, each operation records a node — `W1 @ x` records a matmul node, `torch.sigmoid(z1)` a sigmoid node, and so on. Each node remembers its inputs and how to compute its local derivative. By the time `L` exists, PyTorch holds a full **computational graph** from the leaves up to `L`. You can see the last node via `L.grad_fn` (something like `<SumBackward0>`).
 
-**`.backward()` fills `.grad`.** Calling `L.backward()` walks that graph from `L` down to the leaves, applying exactly the identities from section 3 at each node and multiplying the results together (the chain rule). When it reaches each leaf, it stores the accumulated derivative in that leaf's `.grad` slot. So `W1.grad` is literally $\partial L / \partial \mathbf{W}_1$, sitting in a tensor of the same shape as `W1` — the shape rule made physical. This is precisely the by-hand backward pass of section 4, automated. We open up the graph, `grad_fn`, and gradient accumulation in full in [lesson 25](lesson-03.md).
+**`.backward()` fills `.grad`.** Calling `L.backward()` walks that graph from `L` down to the leaves, applying exactly the identities from section 3 at each node and multiplying the results together (the chain rule). When it reaches each leaf, it stores the accumulated derivative in that leaf's `.grad` slot. So `W1.grad` is literally $\partial L / \partial \mathbf{W}_1$, sitting in a tensor of the same shape as `W1` — the shape rule made physical. This is precisely the by-hand backward pass of section 4, automated. We open up the graph, `grad_fn`, and gradient accumulation in full in [lesson 25](lessons/module-08/lesson-03.md).
 
 ## Check yourself
 
@@ -356,4 +356,4 @@ Section 4.1: instead of $\partial L/\partial z_2 = \partial L/\partial y$, you w
 
 You have now run a complete network forward and backward by hand and watched PyTorch reproduce it exactly. The one piece we treated as given is the loss and its derivative $\partial L/\partial y$. Real models — especially language models — use richer losses, and the next lesson builds them from scratch: MSE, MAE, and then the classification losses (softmax, cross-entropy, NLL, BCE) that turn logits into a single training signal.
 
-Continue to [24 · Loss functions](lesson-02.md).
+Continue to [24 · Loss functions](lessons/module-08/lesson-02.md).

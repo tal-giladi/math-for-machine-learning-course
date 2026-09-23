@@ -1,7 +1,7 @@
 # 25 · Backpropagation and autograd
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">23 · The linear layer, forward and backward by hand</a> (the by-hand backward pass we now automate), <a href="../module-07/lesson-01.md">19 · The chain rule as a graph</a> (the branching rule especially), and <a href="../module-07/lesson-03.md">21 · Vector-Jacobian products</a>. Loss gradients come from <a href="lesson-02.md">24 · Loss functions</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-08/lesson-01">23 · The linear layer, forward and backward by hand</a> (the by-hand backward pass we now automate), <a href="#/lessons/module-07/lesson-01">19 · The chain rule as a graph</a> (the branching rule especially), and <a href="#/lessons/module-07/lesson-03">21 · Vector-Jacobian products</a>. Loss gradients come from <a href="#/lessons/module-08/lesson-02">24 · Loss functions</a>.</p>
 <p><strong>You will learn:</strong> exactly what <code>loss.backward()</code> does — how the forward pass builds a computational graph, how <code>backward()</code> traverses it in reverse applying the chain rule, and every piece of vocabulary around it: <code>requires_grad</code>, <code>grad_fn</code>, <code>.grad</code>, leaf tensors, graph construction and traversal order, gradient <strong>accumulation</strong>, and <code>zero_grad()</code>.</p>
 <p><strong>Why this matters for ML:</strong> this is the engine of all training. Every GPT-2 step is forward → <code>loss.backward()</code> → read <code>.grad</code> → optimizer update → <code>zero_grad()</code>. Once you see that <code>backward()</code> is just the chain rule replayed over a recorded graph — not magic — you can debug any training loop, explain any <code>None</code> gradient, and know precisely where every number lives.</p>
 </div>
@@ -10,7 +10,7 @@
 
 Backpropagation is: **the forward pass records a graph of every operation; `loss.backward()` walks that graph in reverse, applying the chain rule at each node, and deposits the result into each leaf's `.grad`.** That is the whole thing. This lesson unpacks each clause with a runnable snippet, so that by the end nothing in that sentence is mysterious.
 
-You already did the hard part by hand in [lesson 23](lesson-01.md): starting from $\partial L/\partial y$, you pushed the gradient back through each layer, multiplying by local derivatives, until every parameter had its gradient. `backward()` does *exactly that*, automatically, for a graph of any size.
+You already did the hard part by hand in [lesson 23](lessons/module-08/lesson-01.md): starting from $\partial L/\partial y$, you pushed the gradient back through each layer, multiplying by local derivatives, until every parameter had its gradient. `backward()` does *exactly that*, automatically, for a graph of any size.
 
 ## 2. `requires_grad`: opting a tensor into the graph
 
@@ -55,7 +55,7 @@ y.backward()
 print(y.grad)   # tensor(1.0)   -> dy/dy = 1, now kept
 ```
 
-This is exactly why `a1.grad` printed `None` in [lesson 23](lesson-01.md): `a1` was non-leaf.
+This is exactly why `a1.grad` printed `None` in [lesson 23](lessons/module-08/lesson-01.md): `a1` was non-leaf.
 
 ## 4. `grad_fn`: the backward function on each node
 
@@ -90,7 +90,7 @@ L.backward()
 
 ## 6. Graph traversal: reverse topological order
 
-`backward()` starts at the loss and visits nodes in **reverse topological order** — a node is processed only after everything that consumed its output has been processed. That guarantees that by the time PyTorch reaches a node, it already has the full upstream gradient $\partial L/\partial(\text{node output})$ to multiply by that node's local derivative. It is the by-hand rule "work right to left, one layer at a time" from [lesson 23](lesson-01.md), made into an algorithm.
+`backward()` starts at the loss and visits nodes in **reverse topological order** — a node is processed only after everything that consumed its output has been processed. That guarantees that by the time PyTorch reaches a node, it already has the full upstream gradient $\partial L/\partial(\text{node output})$ to multiply by that node's local derivative. It is the by-hand rule "work right to left, one layer at a time" from [lesson 23](lessons/module-08/lesson-01.md), made into an algorithm.
 
 At each node the chain rule is one multiply: (upstream gradient) × (this node's local derivative) = (gradient to pass further back). Nothing more clever is happening.
 
@@ -110,7 +110,7 @@ L2.backward()
 print(w.grad)      # tensor(12.0)     -> 6 + 6, ACCUMULATED, not replaced
 ```
 
-The second `backward()` did not compute $12$; it computed $6$ again and *added* it to the $6$ already sitting in `w.grad`. This is not a bug — it is the correct implementation of the **branching rule** from [lesson 19](../module-07/lesson-01.md): when a quantity feeds into the loss through several paths, its total gradient is the *sum* of the contributions from each path. A parameter used in many places (like a weight reused across positions, or the embedding of a token that appears twice) receives one contribution per use, and accumulation sums them automatically. PyTorch simply treats "you called backward twice" as another form of "multiple contributions," and adds.
+The second `backward()` did not compute $12$; it computed $6$ again and *added* it to the $6$ already sitting in `w.grad`. This is not a bug — it is the correct implementation of the **branching rule** from [lesson 19](lessons/module-07/lesson-01.md): when a quantity feeds into the loss through several paths, its total gradient is the *sum* of the contributions from each path. A parameter used in many places (like a weight reused across positions, or the embedding of a token that appears twice) receives one contribution per use, and accumulation sums them automatically. PyTorch simply treats "you called backward twice" as another form of "multiple contributions," and adds.
 
 ## 8. `zero_grad()`: why you must reset every step
 
@@ -176,13 +176,13 @@ Put it all together and the demystification is complete. `loss.backward()`:
 3. at each node, multiplies the incoming upstream gradient by that node's local derivative (the `grad_fn`), summing contributions where a tensor branched (section 7);
 4. writes the result into each leaf's `.grad` (section 3).
 
-That is the chain rule of [module 7](../module-07/lesson-01.md), executed over the graph recorded during the forward pass. It is the identical procedure you performed with a calculator in [lesson 23](lesson-01.md) — PyTorch just never gets bored or makes an arithmetic slip.
+That is the chain rule of [module 7](lessons/module-07/lesson-01.md), executed over the graph recorded during the forward pass. It is the identical procedure you performed with a calculator in [lesson 23](lessons/module-08/lesson-01.md) — PyTorch just never gets bored or makes an arithmetic slip.
 
 ## 11. What PyTorch is doing under the hood: VJPs, not Jacobians
 
-One deeper point about *how* step 3 stays efficient. A layer whose output and input are both large vectors has, in principle, a huge **Jacobian** — the full matrix of every output's derivative with respect to every input (from [module 7](../module-07/lesson-03.md)). For a $768$-wide layer that Jacobian is $768 \times 768$ per position; forming them explicitly would be ruinous.
+One deeper point about *how* step 3 stays efficient. A layer whose output and input are both large vectors has, in principle, a huge **Jacobian** — the full matrix of every output's derivative with respect to every input (from [module 7](lessons/module-07/lesson-03.md)). For a $768$-wide layer that Jacobian is $768 \times 768$ per position; forming them explicitly would be ruinous.
 
-PyTorch never forms them. Reverse-mode autodiff only ever needs the product of the Jacobian with the upstream gradient *vector* — a **vector-Jacobian product** (VJP), covered in [lessons 21–22](../module-07/lesson-03.md). Each `grad_fn` implements its VJP directly: given the upstream gradient, it returns the downstream gradient in one cheap operation, without materializing the matrix in between. For the linear layer, that VJP is exactly the $\mathbf{W}^\top(\partial L/\partial\mathbf{z})$ identity you used by hand — a matrix-vector product, not a Jacobian construction. This is why backprop over a 124-million-parameter model costs about the same as one or two forward passes, rather than exploding.
+PyTorch never forms them. Reverse-mode autodiff only ever needs the product of the Jacobian with the upstream gradient *vector* — a **vector-Jacobian product** (VJP), covered in [lessons 21–22](lessons/module-07/lesson-03.md). Each `grad_fn` implements its VJP directly: given the upstream gradient, it returns the downstream gradient in one cheap operation, without materializing the matrix in between. For the linear layer, that VJP is exactly the $\mathbf{W}^\top(\partial L/\partial\mathbf{z})$ identity you used by hand — a matrix-vector product, not a Jacobian construction. This is why backprop over a 124-million-parameter model costs about the same as one or two forward passes, rather than exploding.
 
 <div class="callout key"><p>Reverse-mode autograd computes <strong>vector-Jacobian products</strong>, never full Jacobians. Each operation's <code>grad_fn</code> maps the upstream gradient straight to the downstream gradient. That is what makes computing the gradient of a scalar loss with respect to millions of parameters cheap — one backward sweep, roughly the cost of the forward pass.</p></div>
 
@@ -216,4 +216,4 @@ Each use contributes a gradient during the single `backward()` call, and they ar
 
 You now understand training's engine end to end: forward builds the graph, `backward()` replays the chain rule over it as vector-Jacobian products, and gradients land in `.grad` — ready to be consumed. What consumes them is the **optimizer**: the rule that turns gradients into parameter updates. The next module builds it from the simplest case, plain gradient descent, up through momentum, Adam, and AdamW.
 
-Continue to [26 · Gradient descent from scratch](../module-09/lesson-01.md).
+Continue to [26 · Gradient descent from scratch](lessons/module-09/lesson-01.md).

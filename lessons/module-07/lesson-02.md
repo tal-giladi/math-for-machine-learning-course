@@ -1,7 +1,7 @@
 # 20 · Gradients: ∂L/∂x vs ∇, with respect to matrices and tensors
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-06/lesson-04.md">18 · Partial derivatives and the gradient</a> (the partial derivative and the gradient vector, and the shape rule) and <a href="lesson-01.md">19 · The chain rule and computational graphs</a>. Vectors and matrices from <a href="../module-02/lesson-01.md">module 2</a> and <a href="../module-03/lesson-01.md">module 3</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-06/lesson-04">18 · Partial derivatives and the gradient</a> (the partial derivative and the gradient vector, and the shape rule) and <a href="#/lessons/module-07/lesson-01">19 · The chain rule and computational graphs</a>. Vectors and matrices from <a href="#/lessons/module-02/lesson-01">module 2</a> and <a href="#/lessons/module-03/lesson-01">module 3</a>.</p>
 <p><strong>You will learn:</strong> the precise difference between a single partial derivative $\partial L/\partial x_i$ and the whole gradient $\nabla_x L$; that the gradient with respect to a <strong>matrix</strong> is itself a matrix, and with respect to any <strong>tensor</strong> is a tensor of the same shape; and exactly what "the gradient of the loss with respect to a parameter" means, entry by entry.</p>
 <p><strong>Why this matters for ML:</strong> every parameter in GPT-2 — vectors, matrices, and higher tensors — needs a gradient, and PyTorch stores it in <code>p.grad</code> right beside the parameter <code>p</code>, always the same shape. Understanding the shape invariant is understanding how an optimizer knows how to step every parameter at once.</p>
 </div>
@@ -29,7 +29,7 @@ So $\partial L/\partial x_i$ is a single ingredient; $\nabla_x L$ is the full re
 
 ## 2. The gradient keeps the shape of what you differentiate against
 
-In [lesson 18](../module-06/lesson-04.md) you met the shape rule for a vector input: $\nabla_x L$ has the same shape as $x$. That rule does not stop at vectors. It holds for *any* container of numbers you differentiate the scalar $L$ against.
+In [lesson 18](lessons/module-06/lesson-04.md) you met the shape rule for a vector input: $\nabla_x L$ has the same shape as $x$. That rule does not stop at vectors. It holds for *any* container of numbers you differentiate the scalar $L$ against.
 
 ### 2.1 Gradient with respect to a matrix
 
@@ -82,7 +82,7 @@ $$
 - $t$ — the target (also fixed).
 - $L$ — the scalar loss.
 
-To differentiate with respect to $w$, treat $x$ and $t$ as constants and use the chain rule from [lesson 19](lesson-01.md). The outer function is $(\cdot)^2$ with derivative $2(\cdot)$; the inner function is $wx - t$ with derivative (with respect to $w$) equal to $x$. So
+To differentiate with respect to $w$, treat $x$ and $t$ as constants and use the chain rule from [lesson 19](lessons/module-07/lesson-01.md). The outer function is $(\cdot)^2$ with derivative $2(\cdot)$; the inner function is $wx - t$ with derivative (with respect to $w$) equal to $x$. So
 
 $$
 \frac{\partial L}{\partial w} = 2\,(w\,x - t)\cdot x.
@@ -177,9 +177,9 @@ Here $L = \sum_{ij} W_{ij}^2$, so $\partial L/\partial W_{ij} = 2W_{ij}$, giving
 
 Two under-the-hood facts follow directly from this lesson.
 
-**`backward()` requires a scalar (or a supplied upstream gradient).** In every snippet above we called `backward()` on a single number — the loss, or a `.sum()`. That is not incidental. Backpropagation, as built in [lesson 19](lesson-01.md), seeds the sweep with $\frac{\partial L}{\partial L} = 1$, and "$= 1$" only makes sense when $L$ is *one* number. If you call `.backward()` on a non-scalar tensor, PyTorch raises `RuntimeError: grad can be implicitly created only for scalar outputs`, because there is no single "$1$" to seed with — it would need one seed per output element. You either reduce to a scalar first (as with `.sum()`), or hand `backward()` an explicit seed vector: `y.backward(v)`. That seed $v$ is the *upstream gradient*, and the operation "push $v$ back through the graph" is the **vector–Jacobian product** — the topic that the next two lessons build up formally. This is why a loss is always a scalar: it gives the backward pass its single starting number.
+**`backward()` requires a scalar (or a supplied upstream gradient).** In every snippet above we called `backward()` on a single number — the loss, or a `.sum()`. That is not incidental. Backpropagation, as built in [lesson 19](lessons/module-07/lesson-01.md), seeds the sweep with $\frac{\partial L}{\partial L} = 1$, and "$= 1$" only makes sense when $L$ is *one* number. If you call `.backward()` on a non-scalar tensor, PyTorch raises `RuntimeError: grad can be implicitly created only for scalar outputs`, because there is no single "$1$" to seed with — it would need one seed per output element. You either reduce to a scalar first (as with `.sum()`), or hand `backward()` an explicit seed vector: `y.backward(v)`. That seed $v$ is the *upstream gradient*, and the operation "push $v$ back through the graph" is the **vector–Jacobian product** — the topic that the next two lessons build up formally. This is why a loss is always a scalar: it gives the backward pass its single starting number.
 
-**`.grad` accumulates, matching the fan-out rule.** Each leaf's `.grad` starts at `None`; the first `backward()` writes the gradient into it; subsequent `backward()` calls *add* to it rather than overwrite. This is the same summation as the fan-out rule from [lesson 19](lesson-01.md) — a parameter used in several places receives one contribution per use, and they sum. It is deliberate (it enables gradient accumulation across mini-batches), but it means the training loop must call `optimizer.zero_grad()` to reset each `.grad` before the next backward pass, or this step's gradient would be polluted by the last. We assemble the full loop in [module 8](../module-08/lesson-01.md).
+**`.grad` accumulates, matching the fan-out rule.** Each leaf's `.grad` starts at `None`; the first `backward()` writes the gradient into it; subsequent `backward()` calls *add* to it rather than overwrite. This is the same summation as the fan-out rule from [lesson 19](lessons/module-07/lesson-01.md) — a parameter used in several places receives one contribution per use, and they sum. It is deliberate (it enables gradient accumulation across mini-batches), but it means the training loop must call `optimizer.zero_grad()` to reset each `.grad` before the next backward pass, or this step's gradient would be polluted by the last. We assemble the full loop in [module 8](lessons/module-08/lesson-01.md).
 
 ## Check yourself
 
@@ -211,4 +211,4 @@ Backprop seeds the sweep with $\partial L/\partial L = 1$, which requires a sing
 
 You can now say precisely what a gradient is for a vector, a matrix, or a tensor, and why its shape always matches the parameter. But so far the *output* has always been a single scalar. What if a function outputs a whole vector — like a linear layer, or softmax? Then one derivative is not enough; we need a grid of partials, one per (output, input) pair. That grid is the Jacobian.
 
-Continue to [21 · Jacobians](lesson-03.md).
+Continue to [21 · Jacobians](lessons/module-07/lesson-03.md).

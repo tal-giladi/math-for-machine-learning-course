@@ -1,7 +1,7 @@
 # 36 · Automatic differentiation
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> the chain rule and computational graphs from <a href="../module-07/lesson-01.md">19 · The chain rule and computational graphs</a>; Jacobians from <a href="../module-07/lesson-03.md">21 · Jacobians</a> and vector-Jacobian products from <a href="../module-07/lesson-04.md">22 · Matrix calculus and VJPs</a>; and <code>backward()</code>, <code>grad_fn</code>, <code>requires_grad</code> from <a href="../module-08/lesson-03.md">25 · Backpropagation and autograd</a>.</p>
+<p><strong>Prerequisites:</strong> the chain rule and computational graphs from <a href="#/lessons/module-07/lesson-01">19 · The chain rule and computational graphs</a>; Jacobians from <a href="#/lessons/module-07/lesson-03">21 · Jacobians</a> and vector-Jacobian products from <a href="#/lessons/module-07/lesson-04">22 · Matrix calculus and VJPs</a>; and <code>backward()</code>, <code>grad_fn</code>, <code>requires_grad</code> from <a href="#/lessons/module-08/lesson-03">25 · Backpropagation and autograd</a>.</p>
 <p><strong>You will learn:</strong> the three ways a computer can compute a derivative — symbolic, numerical (finite differences), and automatic — with their exact tradeoffs; how automatic differentiation decomposes code into elementary operations with known local derivatives; the difference between <strong>forward-mode</strong> and <strong>reverse-mode</strong> AD; and precisely why neural networks use reverse mode.</p>
 <p><strong>Why this matters for ML:</strong> <code>loss.backward()</code> is reverse-mode automatic differentiation. Understanding it — and understanding what forward mode does instead — tells you why one backward pass yields the gradient with respect to all 124 million GPT-2 parameters at once, why that costs about as much as a single forward pass, and what <code>.backward(v)</code>'s mysterious argument really supplies.</p>
 </div>
@@ -18,13 +18,13 @@ The rest of the lesson takes each in turn, then splits AD into its two modes.
 
 ## 2. Symbolic: exact, but the expression explodes
 
-Symbolic differentiation applies the rules from [module 6](../module-06/lesson-02.md) to an expression tree and returns a new expression tree. For $f(x) = (2x+1)^2$ it produces $f'(x) = 4(2x+1)$ — exact, closed form, evaluatable anywhere.
+Symbolic differentiation applies the rules from [module 6](lessons/module-06/lesson-02.md) to an expression tree and returns a new expression tree. For $f(x) = (2x+1)^2$ it produces $f'(x) = 4(2x+1)$ — exact, closed form, evaluatable anywhere.
 
 The problem is **expression swell**. The product rule and chain rule each *duplicate* sub-expressions: differentiating a product $uv$ gives $u'v + uv'$, which contains both $u$ and $v$ again. Apply this through the dozens of nested operations in a neural network and the symbolic derivative becomes an astronomically large expression full of repeated sub-terms — often far larger than the original function, and wasteful to evaluate because the same sub-expression is recomputed many times. Symbolic differentiation is perfect for a textbook formula and hopeless for a million-operation program.
 
 ## 3. Numerical: approximate, and it costs you one evaluation per input
 
-Numerical (finite-difference) differentiation goes straight back to the definition of the derivative as a limit (from [lesson 15](../module-06/lesson-01.md)), but stops short of the limit:
+Numerical (finite-difference) differentiation goes straight back to the definition of the derivative as a limit (from [lesson 15](lessons/module-06/lesson-01.md)), but stops short of the limit:
 
 $$
 f'(x) \approx \frac{f(x+h) - f(x)}{h}\qquad\text{for a small } h.
@@ -32,7 +32,7 @@ $$
 
 It needs only the ability to *evaluate* $f$ — no formula, no code inspection. But it has two fatal weaknesses for ML.
 
-**Weakness 1: it is inexact, and you cannot simply shrink $h$ to fix it.** There are two competing errors. The *truncation* error (from stopping short of the limit) is proportional to $h$, so it shrinks as $h\to 0$. But the *roundoff* error grows as $h\to 0$: when $h$ is tiny, $f(x+h)$ and $f(x)$ are almost equal, and subtracting two nearly-equal floating-point numbers destroys precision (catastrophic cancellation, from [lesson 35](lesson-01.md)). The total error is smallest at some middling $h$ and gets *worse* if you go smaller. Watch it, for $f(x)=x^2$ at $x=1$ (true derivative $2$):
+**Weakness 1: it is inexact, and you cannot simply shrink $h$ to fix it.** There are two competing errors. The *truncation* error (from stopping short of the limit) is proportional to $h$, so it shrinks as $h\to 0$. But the *roundoff* error grows as $h\to 0$: when $h$ is tiny, $f(x+h)$ and $f(x)$ are almost equal, and subtracting two nearly-equal floating-point numbers destroys precision (catastrophic cancellation, from [lesson 35](lessons/module-12/lesson-01.md)). The total error is smallest at some middling $h$ and gets *worse* if you go smaller. Watch it, for $f(x)=x^2$ at $x=1$ (true derivative $2$):
 
 | $h$ | approximation | error |
 |---|---|---|
@@ -55,7 +55,7 @@ Automatic differentiation is the resolution. Its founding observation: any funct
 
 So AD is **exact** (it uses true local derivatives, not difference quotients — no truncation error, no roundoff-from-cancellation) *and* **efficient** (it reuses intermediate values instead of duplicating sub-expressions the way symbolic does). It is neither of the other two methods; it is a third thing that keeps the good properties of both.
 
-Concretely, take $f(x) = (2x+1)^2$ and decompose it into a chain of elementary steps (a computational graph, from [lesson 19](../module-07/lesson-01.md)):
+Concretely, take $f(x) = (2x+1)^2$ and decompose it into a chain of elementary steps (a computational graph, from [lesson 19](lessons/module-07/lesson-01.md)):
 
 $$
 a = 2x + 1, \qquad y = a^2.
@@ -77,7 +77,7 @@ Out pops $\dfrac{dy}{dx} = 16$ in a single forward sweep. The clean way to forma
 
 ## 6. Reverse mode: record forward, then propagate backward
 
-**Reverse-mode** AD does it in two phases. First a **forward pass** that computes the values and *records the graph* (which operation fed which, and the local derivative at each node). Then a **backward pass** that starts at the output and propagates the derivative back to every input, multiplying by local derivatives as it goes — exactly the procedure from [lesson 25](../module-08/lesson-03.md).
+**Reverse-mode** AD does it in two phases. First a **forward pass** that computes the values and *records the graph* (which operation fed which, and the local derivative at each node). Then a **backward pass** that starts at the output and propagates the derivative back to every input, multiplying by local derivatives as it goes — exactly the procedure from [lesson 25](lessons/module-08/lesson-03.md).
 
 Same example, $y = (2x+1)^2$ at $x=1.5$:
 
@@ -105,7 +105,7 @@ That is the entire reason `loss.backward()` is a reverse-mode engine. Training n
 
 ## 8. Reverse mode is repeated vector-Jacobian products
 
-Here is where this lesson meets [lessons 21–22](../module-07/lesson-04.md). Each elementary operation, viewed as a vector-to-vector map, has a **Jacobian** — the matrix of every output's partial derivative with respect to every input. For a layer that maps a $768$-vector to a $768$-vector that Jacobian is $768\times768$; forming one per operation would be as ruinous as symbolic swell.
+Here is where this lesson meets [lessons 21–22](lessons/module-07/lesson-04.md). Each elementary operation, viewed as a vector-to-vector map, has a **Jacobian** — the matrix of every output's partial derivative with respect to every input. For a layer that maps a $768$-vector to a $768$-vector that Jacobian is $768\times768$; forming one per operation would be as ruinous as symbolic swell.
 
 Reverse mode never forms them. At each node it computes only a **vector-Jacobian product** (VJP): given the upstream gradient row-vector $\mathbf{v} = \dfrac{\partial L}{\partial(\text{node output})}$, it returns $\mathbf{v}^\top J$ — the downstream gradient — directly, in one cheap operation, without ever materializing $J$. The backward pass is nothing but a chain of VJPs, one per node, from the loss back to the parameters. For a linear layer the VJP is the $\mathbf{W}^\top(\partial L/\partial \mathbf{z})$ identity you derived by hand; for `exp` it is elementwise multiply by $e^x$; and so on. That is precisely why the gradient of a scalar loss with respect to millions of parameters is cheap: no Jacobian is ever built.
 
@@ -156,7 +156,7 @@ Both give $16$; they differ in *how* they compute it — `jvp` carries the pertu
 
 ## 10. Under the hood: the dynamic graph and `.backward(v)`
 
-Everything from [lesson 25](../module-08/lesson-03.md) is reverse-mode AD wearing PyTorch clothes:
+Everything from [lesson 25](lessons/module-08/lesson-03.md) is reverse-mode AD wearing PyTorch clothes:
 
 - **`requires_grad` propagation** decides which tensors participate: if any input to an op needs grad, the output does, so tracking spreads forward through the computation.
 - The **dynamic graph** is the recording phase of reverse mode, built op-by-op *as the forward code runs*. Each non-leaf tensor's **`grad_fn`** is that node's stored VJP function — it holds whatever it needs to turn an upstream gradient into a downstream one.
@@ -194,6 +194,6 @@ The upstream gradient vector for the first vector-Jacobian product — the $\mat
 
 ## Next
 
-You now know what computes the gradients (reverse-mode AD) and how to keep the arithmetic finite ([lesson 35](lesson-01.md)). The next lesson assembles everything in the course into one object: a complete GPT-2-style training step, every tensor named, shaped, and classified as parameter, activation, gradient, or optimizer state.
+You now know what computes the gradients (reverse-mode AD) and how to keep the arithmetic finite ([lesson 35](lessons/module-12/lesson-01.md)). The next lesson assembles everything in the course into one object: a complete GPT-2-style training step, every tensor named, shaped, and classified as parameter, activation, gradient, or optimizer state.
 
-Continue to [37 · Training a GPT-2-style model end to end](lesson-03.md).
+Continue to [37 · Training a GPT-2-style model end to end](lessons/module-12/lesson-03.md).

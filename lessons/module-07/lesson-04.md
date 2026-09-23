@@ -1,7 +1,7 @@
 # 22 · Matrix calculus and VJPs
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-03.md">21 · Jacobians</a> (the Jacobian, the linear map's Jacobian $W$, the chain rule as a Jacobian product), <a href="lesson-02.md">20 · Gradients with respect to matrices and tensors</a> (the shape invariant), and matrix multiplication and transpose from <a href="../module-03/lesson-03.md">module 3</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-07/lesson-03">21 · Jacobians</a> (the Jacobian, the linear map's Jacobian $W$, the chain rule as a Jacobian product), <a href="#/lessons/module-07/lesson-02">20 · Gradients with respect to matrices and tensors</a> (the shape invariant), and matrix multiplication and transpose from <a href="#/lessons/module-03/lesson-03">module 3</a>.</p>
 <p><strong>You will learn:</strong> the derivative of a scalar with respect to a vector (a gradient vector) and with respect to a matrix (a gradient matrix); the <strong>vector–Jacobian product (VJP)</strong> and <strong>Jacobian–vector product (JVP)</strong>, and why reverse-mode uses the VJP; and the three workhorse identities for $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$ — with every shape checked and a full numeric example.</p>
 <p><strong>Why this matters for ML:</strong> the linear layer $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$ is the most common operation in GPT-2, and its three backward formulas ($\partial L/\partial\mathbf{x} = \mathbf{W}^\top\mathbf{g}$, $\partial L/\partial\mathbf{W} = \mathbf{g}\mathbf{x}^\top$, $\partial L/\partial\mathbf{b} = \mathbf{g}$) are literally what PyTorch's <code>Linear</code> backward computes. This lesson is the direct on-ramp to module 8.</p>
 </div>
@@ -10,14 +10,14 @@
 
 "Matrix calculus" sounds forbidding, but you already have every piece. We are only combining two ideas you have met:
 
-1. **The shape invariant** ([lesson 20](lesson-02.md)): the derivative of a *scalar* with respect to some object is another object of the *same shape*.
-2. **The chain rule as a Jacobian product** ([lesson 21](lesson-03.md)): compositions multiply Jacobians, and because the loss is scalar we only ever push a *vector* back through each Jacobian.
+1. **The shape invariant** ([lesson 20](lessons/module-07/lesson-02.md)): the derivative of a *scalar* with respect to some object is another object of the *same shape*.
+2. **The chain rule as a Jacobian product** ([lesson 21](lessons/module-07/lesson-03.md)): compositions multiply Jacobians, and because the loss is scalar we only ever push a *vector* back through each Jacobian.
 
 Put together, matrix calculus for neural networks reduces to a short list of "if the loss is scalar and this operation happened in the forward pass, here is how the gradient passes through it." We will derive that list for the linear layer and check every shape. No new theory — just careful bookkeeping.
 
 ## 2. Derivative of a scalar with respect to a vector and a matrix
 
-Recall the two objects from [lesson 20](lesson-02.md), now named as the building blocks of matrix calculus.
+Recall the two objects from [lesson 20](lessons/module-07/lesson-02.md), now named as the building blocks of matrix calculus.
 
 **Scalar with respect to a vector = gradient vector.** If $L$ is a scalar and $\mathbf{x}$ is an $n$-vector, then $\dfrac{\partial L}{\partial\mathbf{x}}$ is the $n$-vector with entries $\big(\partial L/\partial\mathbf{x}\big)_i = \partial L/\partial x_i$. Same shape as $\mathbf{x}$.
 
@@ -72,7 +72,7 @@ $$
 
 ### 4.1 Gradient with respect to the input: $\partial L/\partial\mathbf{x} = \mathbf{W}^\top\mathbf{g}$
 
-The Jacobian of $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$ with respect to $\mathbf{x}$ is $\mathbf{W}$ (the linear-map result from [lesson 21](lesson-03.md); the $+\mathbf{b}$ adds a constant and does not affect the derivative). The chain rule (VJP) says $\partial L/\partial\mathbf{x} = \mathbf{v}^\top J$ with $\mathbf{v} = \mathbf{g}$ and $J = \mathbf{W}$, i.e. as a column vector $\mathbf{W}^\top\mathbf{g}$. Component-wise, since $y_i = \sum_k W_{ik}x_k + b_i$, input $x_j$ influences every output $y_i$ through $W_{ij}$, so their contributions **sum** (the fan-out rule from [lesson 19](lesson-01.md)):
+The Jacobian of $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$ with respect to $\mathbf{x}$ is $\mathbf{W}$ (the linear-map result from [lesson 21](lessons/module-07/lesson-03.md); the $+\mathbf{b}$ adds a constant and does not affect the derivative). The chain rule (VJP) says $\partial L/\partial\mathbf{x} = \mathbf{v}^\top J$ with $\mathbf{v} = \mathbf{g}$ and $J = \mathbf{W}$, i.e. as a column vector $\mathbf{W}^\top\mathbf{g}$. Component-wise, since $y_i = \sum_k W_{ik}x_k + b_i$, input $x_j$ influences every output $y_i$ through $W_{ij}$, so their contributions **sum** (the fan-out rule from [lesson 19](lessons/module-07/lesson-01.md)):
 
 $$
 \frac{\partial L}{\partial x_j} = \sum_{i=1}^{m}\frac{\partial L}{\partial y_i}\frac{\partial y_i}{\partial x_j} = \sum_{i=1}^{m} g_i\,W_{ij} = (\mathbf{W}^\top\mathbf{g})_j.
@@ -206,7 +206,7 @@ print(layer.bias.grad)             # tensor([1., 2.])      -> g
 - $\mathbf{g}\mathbf{x}^\top$ — accumulated into `weight.grad`.
 - $\mathbf{g}$ — accumulated into `bias.grad`.
 
-Notice that only the input-gradient $\mathbf{W}^\top\mathbf{g}$ continues down the chain; the parameter gradients $\mathbf{g}\mathbf{x}^\top$ and $\mathbf{g}$ are *deposited* at this node (accumulated, per [lesson 20](lesson-02.md)) and read later by the optimizer. This is the VJP of section 3 made completely concrete: an output-sized vector $\mathbf{g}$ goes in, an input-sized vector $\mathbf{W}^\top\mathbf{g}$ comes out, and the Jacobian $\mathbf{W}$ is used but never explicitly built. Every layer in the network applies its own VJP this way, and the composition of all of them — from the loss back to the first parameter — is the complete backpropagation algorithm. You are now ready to build a whole network from these bricks.
+Notice that only the input-gradient $\mathbf{W}^\top\mathbf{g}$ continues down the chain; the parameter gradients $\mathbf{g}\mathbf{x}^\top$ and $\mathbf{g}$ are *deposited* at this node (accumulated, per [lesson 20](lessons/module-07/lesson-02.md)) and read later by the optimizer. This is the VJP of section 3 made completely concrete: an output-sized vector $\mathbf{g}$ goes in, an input-sized vector $\mathbf{W}^\top\mathbf{g}$ comes out, and the Jacobian $\mathbf{W}$ is used but never explicitly built. Every layer in the network applies its own VJP this way, and the composition of all of them — from the loss back to the first parameter — is the complete backpropagation algorithm. You are now ready to build a whole network from these bricks.
 
 ## Check yourself
 
@@ -238,4 +238,4 @@ $\partial L/\partial\mathbf{x} = \mathbf{W}^\top\mathbf{g}$ is passed back (it b
 
 You now hold the three identities that every linear layer uses on the backward pass, with shapes that always line up. That is the last mathematical brick. In module 8 we stack these bricks into a real two-layer network, run a complete forward and backward pass by hand with small numbers, and then reproduce the exact same gradients in PyTorch — the milestone where all of this calculus becomes a working neural network.
 
-Continue to [module 8 · Linear layers and neural-network mathematics](../module-08/lesson-01.md).
+Continue to [module 8 · Linear layers and neural-network mathematics](lessons/module-08/lesson-01.md).

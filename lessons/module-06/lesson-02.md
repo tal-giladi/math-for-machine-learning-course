@@ -1,14 +1,14 @@
 # 16 · Derivative rules and the chain rule
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">15 · Limits, slope, and the derivative</a> (the definition $f'(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$ and the result $\frac{d}{dx}x^2 = 2x$), plus function composition from <a href="../module-05/lesson-01.md">the functions and composition module</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-06/lesson-01">15 · Limits, slope, and the derivative</a> (the definition $f'(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$ and the result $\frac{d}{dx}x^2 = 2x$), plus function composition from <a href="#/lessons/module-05/lesson-01">the functions and composition module</a>.</p>
 <p><strong>You will learn:</strong> the shortcut rules that let you differentiate without going back to the limit every time — the constant, power, constant-multiple, sum, product, and quotient rules — and then the <strong>chain rule</strong>, the rule for differentiating a function inside a function. Each rule comes with a named-symbol formula, a tiny worked number, and a note on where it shows up in ML.</p>
-<p><strong>Why this matters for ML:</strong> a neural network is a deep composition of functions, so its derivatives are computed by the chain rule applied over and over. The chain rule is <em>the</em> rule behind backpropagation; this lesson plants it, and <a href="../module-07/lesson-01.md">module 7</a> gives it the full computational-graph treatment.</p>
+<p><strong>Why this matters for ML:</strong> a neural network is a deep composition of functions, so its derivatives are computed by the chain rule applied over and over. The chain rule is <em>the</em> rule behind backpropagation; this lesson plants it, and <a href="#/lessons/module-07/lesson-01">module 7</a> gives it the full computational-graph treatment.</p>
 </div>
 
 ## 1. Why we want rules
 
-In [lesson 1](lesson-01.md) we found $\frac{d}{dx}x^2 = 2x$ by expanding a difference quotient and taking a limit. Doing that for every function in a Transformer would be hopeless. Fortunately, a handful of rules cover almost everything, and they *compose*: once you know how to differentiate the pieces, you can differentiate any combination. Every rule below can be proven from the limit definition, but in practice you apply the rule and move on. We take them one at a time, each in the same shape: **name the formula, name every symbol, work a tiny number, note the ML use.**
+In [lesson 1](lessons/module-06/lesson-01.md) we found $\frac{d}{dx}x^2 = 2x$ by expanding a difference quotient and taking a limit. Doing that for every function in a Transformer would be hopeless. Fortunately, a handful of rules cover almost everything, and they *compose*: once you know how to differentiate the pieces, you can differentiate any combination. Every rule below can be proven from the limit definition, but in practice you apply the rule and move on. We take them one at a time, each in the same shape: **name the formula, name every symbol, work a tiny number, note the ML use.**
 
 Throughout, $f$ and $g$ are functions of $x$, $f'$ and $g'$ are their derivatives, $c$ and $n$ are constants (fixed numbers).
 
@@ -111,7 +111,7 @@ $$
 
 At $x = 2$: $-\frac{1}{4} = -0.25$. This agrees with the power rule reading of $x^{-1}$: $-1\cdot x^{-2} = -x^{-2}$. Good — two routes, same answer.
 
-**ML use:** the quotient rule is exactly what you use to differentiate the **sigmoid** $\sigma(x) = \frac{1}{1+e^{-x}}$ and the **softmax**, both of which are ratios; we do those derivations in full in [lesson 3](lesson-03.md).
+**ML use:** the quotient rule is exactly what you use to differentiate the **sigmoid** $\sigma(x) = \frac{1}{1+e^{-x}}$ and the **softmax**, both of which are ratios; we do those derivations in full in [lesson 3](lessons/module-06/lesson-03.md).
 
 <div class="callout key"><p>The five algebraic rules: constant $\to 0$; power $x^n \to n x^{n-1}$; constant-multiple pulls the constant out; sum differentiates term by term; product is $f'g+fg'$; quotient is $\frac{f'g-fg'}{g^2}$. Memorize product and quotient carefully — they are the ones people get wrong.</p></div>
 
@@ -167,7 +167,7 @@ If there were three nested functions, $x \to u \to v \to y$, you would multiply 
 
 A neural network computes its output by composition: the input passes through a linear layer, then an activation, then another linear layer, then the loss — each stage a function fed the previous stage's output. Symbolically the loss is something like $L = \ell(\,f_3(\,f_2(\,f_1(x)\,)\,)\,)$, a deep nest.
 
-To train, you need $\frac{\partial L}{\partial \theta}$ for every parameter $\theta$ buried anywhere in that nest. The chain rule says: multiply the local derivative at each stage from the loss back to the parameter. **Backpropagation is just the chain rule applied to the network's computational graph, evaluated from the output backward** so that shared sub-results are reused instead of recomputed. Every gradient PyTorch reports is a product of local derivatives assembled by the chain rule. We build the full machinery — computational graphs, local derivatives at each node, the backward sweep — in [module 7](../module-07/lesson-01.md). For now, the takeaway is that the single formula $\frac{dy}{dx} = \frac{dy}{du}\frac{du}{dx}$ scales up to the whole network.
+To train, you need $\frac{\partial L}{\partial \theta}$ for every parameter $\theta$ buried anywhere in that nest. The chain rule says: multiply the local derivative at each stage from the loss back to the parameter. **Backpropagation is just the chain rule applied to the network's computational graph, evaluated from the output backward** so that shared sub-results are reused instead of recomputed. Every gradient PyTorch reports is a product of local derivatives assembled by the chain rule. We build the full machinery — computational graphs, local derivatives at each node, the backward sweep — in [module 7](lessons/module-07/lesson-01.md). For now, the takeaway is that the single formula $\frac{dy}{dx} = \frac{dy}{du}\frac{du}{dx}$ scales up to the whole network.
 
 ## 10. In PyTorch
 
@@ -241,4 +241,4 @@ Because a network output is a composition of layer functions, and the chain rule
 
 You now have the rules to differentiate the algebraic functions that make up a network, plus the chain rule that stitches them together. Next we apply these rules to the specific nonlinear functions that appear in every model — the exponential, the logarithm, the sigmoid, and the softmax — and derive their derivatives in full.
 
-Continue to [17 · Derivatives of exp, log, sigmoid, softmax](lesson-03.md).
+Continue to [17 · Derivatives of exp, log, sigmoid, softmax](lessons/module-06/lesson-03.md).

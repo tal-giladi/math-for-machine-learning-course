@@ -1,7 +1,7 @@
 # 18 · Partial derivatives and the gradient
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">15 · Limits, slope, and the derivative</a> and <a href="lesson-02.md">16 · Derivative rules and the chain rule</a> (you need the power, product, and sum rules), plus vectors from <a href="../module-02/lesson-01.md">the vectors module</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-06/lesson-01">15 · Limits, slope, and the derivative</a> and <a href="#/lessons/module-06/lesson-02">16 · Derivative rules and the chain rule</a> (you need the power, product, and sum rules), plus vectors from <a href="#/lessons/module-02/lesson-01">the vectors module</a>.</p>
 <p><strong>You will learn:</strong> what a function of several variables is, the <strong>partial derivative</strong> (differentiate with respect to one variable while holding the others fixed), and the <strong>gradient</strong> — the vector of all partial derivatives — including its shape rule and its meaning as the direction of steepest ascent.</p>
 <p><strong>Why this matters for ML:</strong> a loss depends not on one number but on millions of parameters at once. The gradient is the vector of every $\partial L/\partial\theta$, and training moves the parameters along $-\nabla L$ — downhill. This lesson is the direct bridge from single-variable calculus to gradient descent.</p>
 </div>
@@ -39,7 +39,7 @@ $$
 - $\frac{\partial f}{\partial x}$ — the rate of change of $f$ as $x$ varies and **$y$ is held fixed** (notice only the first slot changes in $f(x+h, y)$).
 - Likewise $\frac{\partial f}{\partial y}$ holds $x$ fixed and varies $y$.
 
-The straight-$d$ notation $\frac{df}{dx}$ from [lesson 1](lesson-01.md) is for single-variable functions; the curly $\frac{\partial f}{\partial x}$ says "there are other variables, and I am freezing them." Otherwise it is the same limit-of-a-difference-quotient idea, and — crucially — the *same rules from [lesson 2](lesson-02.md) apply*. You just regard every non-target variable as a constant.
+The straight-$d$ notation $\frac{df}{dx}$ from [lesson 1](lessons/module-06/lesson-01.md) is for single-variable functions; the curly $\frac{\partial f}{\partial x}$ says "there are other variables, and I am freezing them." Otherwise it is the same limit-of-a-difference-quotient idea, and — crucially — the *same rules from [lesson 2](lessons/module-06/lesson-02.md) apply*. You just regard every non-target variable as a constant.
 
 ### 2.3 Worked example
 
@@ -177,7 +177,7 @@ print(p.grad)               # tensor([8., 7.])
 Two details that trip people up, both flowing from "`.grad` is a slot that gets written":
 
 - **Same shape as the leaf.** Because $\partial f/\partial\theta_i$ exists for each component $\theta_i$, the collected gradient has exactly the leaf's shape. `p.grad` matches `p.shape`; this is the section 3.3 rule made concrete.
-- **Gradients accumulate.** `backward()` *adds* into `.grad` rather than overwriting it. Call `backward()` twice without clearing and you get the sum of two gradients. That is deliberate (it lets you accumulate gradients over several mini-batches), but it means the training loop must reset the slots with `optimizer.zero_grad()` before each new backward pass — otherwise this step's gradient is contaminated by last step's. We return to `zero_grad`, `grad_fn`, and the full graph traversal in [module 7](../module-07/lesson-01.md), where the gradient computation itself — backpropagation — is finally assembled from the chain rule.
+- **Gradients accumulate.** `backward()` *adds* into `.grad` rather than overwriting it. Call `backward()` twice without clearing and you get the sum of two gradients. That is deliberate (it lets you accumulate gradients over several mini-batches), but it means the training loop must reset the slots with `optimizer.zero_grad()` before each new backward pass — otherwise this step's gradient is contaminated by last step's. We return to `zero_grad`, `grad_fn`, and the full graph traversal in [module 7](lessons/module-07/lesson-01.md), where the gradient computation itself — backpropagation — is finally assembled from the chain rule.
 
 ## Check yourself
 
@@ -209,4 +209,4 @@ Because the gradient has one partial derivative per input component (the shape r
 
 You can now take partial derivatives, assemble them into a gradient, and you understand that training walks the parameters along $-\nabla L$. What is still missing is the *mechanism* that computes $\nabla L$ efficiently for a deep network: the chain rule organized over a computational graph, swept backward. That is backpropagation — the heart of the whole course — and it is where we go next.
 
-Continue to [19 · The chain rule as a graph](../module-07/lesson-01.md).
+Continue to [19 · The chain rule as a graph](lessons/module-07/lesson-01.md).

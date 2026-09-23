@@ -1,7 +1,7 @@
 # 26 · Gradient descent
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> the gradient from <a href="../module-06/lesson-04.md">18 · Partial derivatives and the gradient</a> (you must know that $\nabla L$ points uphill and has the same shape as the parameters), and <a href="../module-08/lesson-01.md">backpropagation</a> — the machine that actually computes $\nabla L$ for a network.</p>
+<p><strong>Prerequisites:</strong> the gradient from <a href="#/lessons/module-06/lesson-04">18 · Partial derivatives and the gradient</a> (you must know that $\nabla L$ points uphill and has the same shape as the parameters), and <a href="#/lessons/module-08/lesson-01">backpropagation</a> — the machine that actually computes $\nabla L$ for a network.</p>
 <p><strong>You will learn:</strong> the gradient-descent update $\theta \leftarrow \theta - \eta\,\nabla L(\theta)$ with every symbol named, worked numerically for one and two parameters, how the learning rate $\eta$ controls crawling versus overshooting versus divergence, the shape of loss landscapes (minima, saddle points, plateaus), the difference between batch, stochastic, and mini-batch gradient descent, and how to perform the update by hand in PyTorch before letting <code>optimizer.step()</code> do it for you.</p>
 <p><strong>Why this matters for ML:</strong> every neural network you will ever train, from a two-parameter toy to GPT-2, learns by repeating this one update millions of times. Backpropagation supplies the gradient; gradient descent is what turns that gradient into an actual change in the weights.</p>
 </div>
@@ -18,7 +18,7 @@ Read it as an assignment (the arrow $\leftarrow$ means "replace the left side wi
 
 - $\theta$ (theta) — the **parameters**: every weight and bias in the model, gathered into one big collection. For our first example $\theta$ is a single number $w$; for GPT-2 it is about 124 million numbers.
 - $L(\theta)$ — the **loss**: one number saying how wrong the model currently is. It depends on $\theta$, so as you change the parameters the loss changes.
-- $\nabla L(\theta)$ — the **gradient** of the loss: the vector of all partial derivatives $\partial L/\partial\theta_i$, one per parameter. From [lesson 18](../module-06/lesson-04.md) you know it has the same shape as $\theta$ and points in the direction of steepest *ascent* — the fastest way to make the loss *bigger*.
+- $\nabla L(\theta)$ — the **gradient** of the loss: the vector of all partial derivatives $\partial L/\partial\theta_i$, one per parameter. From [lesson 18](lessons/module-06/lesson-04.md) you know it has the same shape as $\theta$ and points in the direction of steepest *ascent* — the fastest way to make the loss *bigger*.
 - $\eta$ (eta) — the **learning rate**: a small positive number (like $0.1$ or $0.001$) that controls how big a step you take. It is a knob *you* choose, not something the math hands you.
 
 The minus sign is the whole trick. The gradient points uphill; we want to go *downhill* (smaller loss); so we step in the *opposite* direction, $-\nabla L$. The learning rate scales how far.
@@ -195,7 +195,7 @@ The printed parameters `0.6000, 1.0800, 1.4640, 1.7712, 2.0170` match our hand t
 
 **`w -= lr * w.grad`** This is an **in-place** update: it modifies the existing `w` tensor rather than creating a new one. That matters because `w` is a *leaf* parameter with a `.grad` attached; we want to keep the same tensor object (and its gradient slot) around across steps, just change its value. Writing `w = w - lr * w.grad` (without the in-place `-=`) inside `no_grad` would rebind `w` to a fresh tensor that is no longer a leaf with `requires_grad`, and the next `backward()` would fail — a classic beginner trap.
 
-**`w.grad.zero_()`** Recall from [lesson 18](../module-06/lesson-04.md) that `backward()` *accumulates* into `.grad` — it adds, it does not overwrite. If we skipped this line, step 2's gradient would be added on top of step 1's leftover, and every subsequent step would use a corrupted, ever-larger gradient. Zeroing the slot before (or after) each step keeps each update honest.
+**`w.grad.zero_()`** Recall from [lesson 18](lessons/module-06/lesson-04.md) that `backward()` *accumulates* into `.grad` — it adds, it does not overwrite. If we skipped this line, step 2's gradient would be added on top of step 1's leftover, and every subsequent step would use a corrupted, ever-larger gradient. Zeroing the slot before (or after) each step keeps each update honest.
 
 <div class="callout pt"><p>An optimizer is just this loop, packaged. <code>optimizer.step()</code> runs exactly <code>with torch.no_grad(): p -= lr * p.grad</code> for every parameter <code>p</code> it manages, and <code>optimizer.zero_grad()</code> runs <code>p.grad.zero_()</code> for each. The equivalent PyTorch idiom is:</p></div>
 
@@ -246,4 +246,4 @@ Only what $\nabla L$ is averaged over each step: the whole training set (batch),
 
 You now have the core loop: compute the gradient, step against it, repeat. Plain gradient descent works, but it crawls through plateaus, rattles across steep-and-narrow valleys, and forces you to hand-pick one learning rate for millions of differently-scaled parameters. The next lesson fixes all three with momentum and adaptive learning rates, building up to Adam and AdamW — the optimizers that actually train GPT-2.
 
-Continue to [27 · SGD, momentum, RMSProp, Adam, AdamW](lesson-02.md).
+Continue to [27 · SGD, momentum, RMSProp, Adam, AdamW](lessons/module-09/lesson-02.md).

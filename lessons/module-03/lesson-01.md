@@ -1,7 +1,7 @@
 # 09 · Matrices, shapes, and indexing
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-02/lesson-01.md">06 · What a vector is</a> and <a href="../module-02/lesson-02.md">07 · Adding, scaling, and the dot product</a>. You should be comfortable with a vector as a list of numbers, and with adding two vectors and scaling one by a number.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-02/lesson-01">06 · What a vector is</a> and <a href="#/lessons/module-02/lesson-02">07 · Adding, scaling, and the dot product</a>. You should be comfortable with a vector as a list of numbers, and with adding two vectors and scaling one by a number.</p>
 <p><strong>You will learn:</strong> what a matrix is (three ways to see it), how we describe its shape, how to name a single entry with two indices, how to add matrices and multiply them by a scalar, and how all of this looks in PyTorch.</p>
 <p><strong>Why this matters for ML:</strong> the weights of every linear layer in GPT-2 are matrices. A batch of token vectors is a matrix. Before you can understand what a linear layer or an attention head <em>does</em>, you need to be fluent in reading and indexing matrices.</p>
 </div>
@@ -238,4 +238,4 @@ No. Matrix addition is component-wise and requires the *same* shape. $(2, 3)$ an
 
 You can now read a matrix, name any entry, and combine matrices with addition and scaling. The one operation we deliberately skipped — multiplying matrices together — is the engine of every neural network, and it deserves a lesson of its own.
 
-Continue to [10 · Matrix multiplication](lesson-02.md).
+Continue to [10 · Matrix multiplication](lessons/module-03/lesson-02.md).

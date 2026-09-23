@@ -1,7 +1,7 @@
 # 21 · Jacobians
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-02.md">20 · Gradients: ∂L/∂x vs ∇, with respect to matrices and tensors</a>, the chain rule and computational graphs from <a href="lesson-01.md">lesson 19</a>, and the softmax Jacobian from <a href="../module-06/lesson-03.md">17 · Derivatives of exp, log, sigmoid, softmax</a>. Matrix multiplication from <a href="../module-03/lesson-03.md">module 3</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-07/lesson-02">20 · Gradients: ∂L/∂x vs ∇, with respect to matrices and tensors</a>, the chain rule and computational graphs from <a href="#/lessons/module-07/lesson-01">lesson 19</a>, and the softmax Jacobian from <a href="#/lessons/module-06/lesson-03">17 · Derivatives of exp, log, sigmoid, softmax</a>. Matrix multiplication from <a href="#/lessons/module-03/lesson-03">module 3</a>.</p>
 <p><strong>You will learn:</strong> what the <strong>Jacobian</strong> of a vector-valued function is, its exact shape rule ($m\times n$), a fully worked $2\times 2$ example, why a linear map's Jacobian is the matrix itself, why an elementwise activation has a <strong>diagonal</strong> Jacobian, and the chain rule as a <strong>product of Jacobians</strong> — plus why PyTorch never builds big Jacobians explicitly.</p>
 <p><strong>Why this matters for ML:</strong> every layer is a vector-valued function, so every layer has a Jacobian. Backpropagation is, formally, the chain rule multiplying these Jacobians backward. Seeing that linear layers give $W$, activations give a diagonal, and the whole chain is a matrix product is what turns "backprop" from a black box into linear algebra.</p>
 </div>
@@ -40,7 +40,7 @@ $$
 
 <div class="callout key"><p><strong>Shape rule:</strong> for $f:\mathbb{R}^n\to\mathbb{R}^m$ the Jacobian is $m\times n$ — <em>outputs index the rows, inputs index the columns</em>, and $J_{ij}=\partial f_i/\partial x_j$. A scalar output ($m=1$) makes $J$ a single $1\times n$ row: the gradient transposed.</p></div>
 
-Notice the special case $m = 1$: the Jacobian is a single row of $n$ partials — that is the gradient from [lesson 20](lesson-02.md), written horizontally. The Jacobian is the natural generalization of the gradient to many outputs.
+Notice the special case $m = 1$: the Jacobian is a single row of $n$ partials — that is the gradient from [lesson 20](lessons/module-07/lesson-02.md), written horizontally. The Jacobian is the natural generalization of the gradient to many outputs.
 
 ## 3. A worked $2\times 2$ example
 
@@ -50,7 +50,7 @@ $$
 f(x_1, x_2) = \begin{bmatrix} x_1^2\, x_2 \\ x_1 + 3x_2 \end{bmatrix}.
 $$
 
-The two output components are $f_1 = x_1^2 x_2$ and $f_2 = x_1 + 3x_2$. Compute all four partials, treating the other variable as a constant each time (partial derivatives, [lesson 18](../module-06/lesson-04.md)):
+The two output components are $f_1 = x_1^2 x_2$ and $f_2 = x_1 + 3x_2$. Compute all four partials, treating the other variable as a constant each time (partial derivatives, [lesson 18](lessons/module-06/lesson-04.md)):
 
 - $\dfrac{\partial f_1}{\partial x_1} = 2x_1 x_2$ (power rule on $x_1^2$, with $x_2$ a constant multiple).
 - $\dfrac{\partial f_1}{\partial x_2} = x_1^2$ ($x_1^2$ is the constant multiple of $x_2$).
@@ -99,11 +99,11 @@ $$
 J = \begin{bmatrix} \phi'(x_1) & 0 & \cdots & 0 \\ 0 & \phi'(x_2) & \cdots & 0 \\ \vdots & & \ddots & \vdots \\ 0 & 0 & \cdots & \phi'(x_n) \end{bmatrix} = \operatorname{diag}\big(\phi'(x_1), \dots, \phi'(x_n)\big).
 $$
 
-For sigmoid, $\phi'(x_i) = \sigma(x_i)\,(1 - \sigma(x_i))$ — the formula derived in [lesson 17](../module-06/lesson-03.md). Example: for inputs whose sigmoid outputs are $\mathbf{s} = (0.5, 0.8)$, the Jacobian is $\operatorname{diag}(0.5\cdot 0.5,\ 0.8\cdot 0.2) = \operatorname{diag}(0.25,\ 0.16)$. A diagonal Jacobian is cheap: multiplying a vector by it is just elementwise scaling, no full matrix needed.
+For sigmoid, $\phi'(x_i) = \sigma(x_i)\,(1 - \sigma(x_i))$ — the formula derived in [lesson 17](lessons/module-06/lesson-03.md). Example: for inputs whose sigmoid outputs are $\mathbf{s} = (0.5, 0.8)$, the Jacobian is $\operatorname{diag}(0.5\cdot 0.5,\ 0.8\cdot 0.2) = \operatorname{diag}(0.25,\ 0.16)$. A diagonal Jacobian is cheap: multiplying a vector by it is just elementwise scaling, no full matrix needed.
 
 ### 4.3 Softmax: a dense Jacobian (recap)
 
-Softmax is the contrast. Because every output shares the same denominator, output $s_i$ depends on *every* input $z_j$, so its Jacobian is **dense** (no zeros to exploit). We derived it in full in [lesson 17](../module-06/lesson-03.md):
+Softmax is the contrast. Because every output shares the same denominator, output $s_i$ depends on *every* input $z_j$, so its Jacobian is **dense** (no zeros to exploit). We derived it in full in [lesson 17](lessons/module-06/lesson-03.md):
 
 $$
 \frac{\partial s_i}{\partial z_j} = s_i\big(\delta_{ij} - s_j\big),
@@ -115,7 +115,7 @@ $$
 J_{\text{softmax}} = \begin{bmatrix} 0.19661 & -0.19661 \\ -0.19661 & 0.19661 \end{bmatrix},
 $$
 
-diagonal entries $s_i(1-s_i)$, off-diagonal $-s_i s_j$. See [module 6, lesson 3](../module-06/lesson-03.md) for the derivation and the column-sums-to-zero sanity check.
+diagonal entries $s_i(1-s_i)$, off-diagonal $-s_i s_j$. See [module 6, lesson 3](lessons/module-06/lesson-03.md) for the derivation and the column-sums-to-zero sanity check.
 
 ## 5. The chain rule is a product of Jacobians
 
@@ -129,7 +129,7 @@ $$
 - $J_f$ is the Jacobian of the outer function $f$ (evaluated at $\mathbf{u} = g(\mathbf{x})$).
 - The product is ordinary matrix multiplication.
 
-This is the exact generalization of the scalar chain rule "multiply the local derivatives" from [lesson 19](lesson-01.md): for scalars the factors were numbers; for vector functions the factors are Jacobian matrices, and "multiply" becomes matrix multiply. **The shapes have to line up**, and they do: if $g:\mathbb{R}^n\to\mathbb{R}^p$ then $J_g$ is $p\times n$; if $f:\mathbb{R}^p\to\mathbb{R}^m$ then $J_f$ is $m\times p$; the product $J_f\,J_g$ is $(m\times p)(p\times n) = m\times n$ — exactly the Jacobian shape for the composite $\mathbb{R}^n\to\mathbb{R}^m$. The inner dimension $p$ (the width of the intermediate layer) cancels, just as it does in any matrix multiply.
+This is the exact generalization of the scalar chain rule "multiply the local derivatives" from [lesson 19](lessons/module-07/lesson-01.md): for scalars the factors were numbers; for vector functions the factors are Jacobian matrices, and "multiply" becomes matrix multiply. **The shapes have to line up**, and they do: if $g:\mathbb{R}^n\to\mathbb{R}^p$ then $J_g$ is $p\times n$; if $f:\mathbb{R}^p\to\mathbb{R}^m$ then $J_f$ is $m\times p$; the product $J_f\,J_g$ is $(m\times p)(p\times n) = m\times n$ — exactly the Jacobian shape for the composite $\mathbb{R}^n\to\mathbb{R}^m$. The inner dimension $p$ (the width of the intermediate layer) cancels, just as it does in any matrix multiply.
 
 ### 5.1 A numeric check
 
@@ -223,4 +223,4 @@ The Jacobian is $W$ itself, a $50000\times768$ matrix (38M entries) that is wast
 
 You now see backprop as a product of Jacobians, executed as vector–Jacobian products so the big matrices never appear. The final piece is to make the VJP concrete for the operation that dominates every network — the linear layer $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$ — and derive, with checked shapes, the three gradient formulas ($\partial L/\partial\mathbf{x}$, $\partial L/\partial\mathbf{W}$, $\partial L/\partial\mathbf{b}$) that module 8 is built on.
 
-Continue to [22 · Matrix calculus and vector–Jacobian products](lesson-04.md).
+Continue to [22 · Matrix calculus and vector–Jacobian products](lessons/module-07/lesson-04.md).

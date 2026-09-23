@@ -1,20 +1,20 @@
 # 38 · Fine-tuning and LoRA
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> matrix multiplication and shapes from <a href="../module-03/lesson-02.md">10 · Matrix multiplication</a>; <strong>rank</strong> from <a href="../module-03/lesson-03.md">11 · Transpose, identity, inverse, rank</a>; the linear layer and its gradients from <a href="../module-08/lesson-01.md">23 · The linear layer</a>; <code>requires_grad</code> and leaf tensors from <a href="../module-08/lesson-03.md">25 · Backpropagation and autograd</a>; and the full training step from <a href="lesson-03.md">37 · Training a GPT-2-style model end to end</a>.</p>
+<p><strong>Prerequisites:</strong> matrix multiplication and shapes from <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>; <strong>rank</strong> from <a href="#/lessons/module-03/lesson-03">11 · Transpose, identity, inverse, rank</a>; the linear layer and its gradients from <a href="#/lessons/module-08/lesson-01">23 · The linear layer</a>; <code>requires_grad</code> and leaf tensors from <a href="#/lessons/module-08/lesson-03">25 · Backpropagation and autograd</a>; and the full training step from <a href="#/lessons/module-12/lesson-03">37 · Training a GPT-2-style model end to end</a>.</p>
 <p><strong>You will learn:</strong> what it means to start from pretrained weights, freeze parameters, and fine-tune; why fine-tuning uses a smaller learning rate; what catastrophic forgetting is; the cost of full fine-tuning versus parameter-efficient methods; and <strong>LoRA</strong> in full mathematical detail — the low-rank update $\Delta W = BA$, its parameter count, its gradients, its initialization, and its PyTorch form.</p>
 <p><strong>Why this matters for ML:</strong> you rarely train a GPT from scratch; you take a pretrained model and adapt it. LoRA is how that adaptation is done cheaply — training a $768\times768$ layer by learning only $12{,}288$ numbers instead of $589{,}824$. Understanding it ties together rank, gradients, and the parameter/optimizer-state accounting from the previous lesson.</p>
 </div>
 
 ## 1. Pretraining vs fine-tuning
 
-**Pretraining** is what [lesson 37](lesson-03.md) described: start from random weights and train on a huge generic corpus until the model is a competent next-token predictor. It is expensive — many GPUs, a long time.
+**Pretraining** is what [lesson 37](lessons/module-12/lesson-03.md) described: start from random weights and train on a huge generic corpus until the model is a competent next-token predictor. It is expensive — many GPUs, a long time.
 
 **Fine-tuning** starts from those already-trained **pretrained parameters** and continues training on a smaller, task-specific dataset (say, your company's support tickets) to specialize the model. The crucial difference is the starting point: instead of initializing $\theta$ randomly, you **initialize from the pretrained weights**. The model already knows grammar, facts, and reasoning patterns; fine-tuning only nudges it toward the new task. Everything mechanical — forward pass, `loss.backward()`, optimizer step — is identical to lesson 37. Only *where you start* and *how far you move* change.
 
 ## 2. The fine-tuning learning rate is smaller — and why
 
-Fine-tuning almost always uses a **smaller learning rate** $\eta$ than pretraining (often 10–100× smaller). The reason is geometric. The pretrained weights already sit in a good region of the loss landscape ([lesson 26](../module-09/lesson-01.md)). A large step would fling the parameters far from that hard-won region, destroying the general competence before the model has learned anything task-specific. A small $\eta$ takes gentle steps that adapt the model while staying near the pretrained solution.
+Fine-tuning almost always uses a **smaller learning rate** $\eta$ than pretraining (often 10–100× smaller). The reason is geometric. The pretrained weights already sit in a good region of the loss landscape ([lesson 26](lessons/module-09/lesson-01.md)). A large step would fling the parameters far from that hard-won region, destroying the general competence before the model has learned anything task-specific. A small $\eta$ takes gentle steps that adapt the model while staying near the pretrained solution.
 
 This connects directly to the next idea.
 
@@ -36,7 +36,7 @@ for p in model.parameters():
 Setting `requires_grad = False` has three precise consequences, each tying back to earlier lessons:
 
 - **It still participates in the forward pass.** A frozen weight is used in its matrix multiply exactly as before — freezing changes learning, not computation.
-- **It receives no gradient.** With `requires_grad = False`, autograd does not track operations for it, so its `.grad` stays `None` ([lesson 25](../module-08/lesson-03.md)).
+- **It receives no gradient.** With `requires_grad = False`, autograd does not track operations for it, so its `.grad` stays `None` ([lesson 25](lessons/module-08/lesson-03.md)).
 - **It gets no optimizer state and no update.** No gradient means AdamW never allocates $m,v$ for it and never steps it. It is a constant.
 
 A **trainable parameter** is the opposite: `requires_grad = True`, gets a gradient, gets optimizer state, gets updated. Fine-tuning is a choice of which parameters are trainable and which are frozen.
@@ -47,7 +47,7 @@ A **trainable parameter** is the opposite: `requires_grad = True`, gets a gradie
 
 ## 6. LoRA: the idea
 
-**LoRA** (Low-Rank Adaptation) is the dominant PEFT method. The observation behind it: the *change* a task needs to make to a big weight matrix is usually "simple" — it lives in a low-dimensional subspace, i.e. it has low **rank** ([lesson 11](../module-03/lesson-03.md)). So instead of learning a full-rank update, learn a low-rank one.
+**LoRA** (Low-Rank Adaptation) is the dominant PEFT method. The observation behind it: the *change* a task needs to make to a big weight matrix is usually "simple" — it lives in a low-dimensional subspace, i.e. it has low **rank** ([lesson 11](lessons/module-03/lesson-03.md)). So instead of learning a full-rank update, learn a low-rank one.
 
 Take a pretrained weight matrix $\mathbf{W}$ of shape $(d, k)$. **Freeze it.** Add a trainable update $\Delta\mathbf{W}$ that is *factored* into two thin matrices:
 
@@ -95,15 +95,15 @@ $$
 r(d + k) = 8\times(768 + 768) = 8\times1536 = 12{,}288 \text{ trainable parameters.}
 $$
 
-The ratio is $\dfrac{589{,}824}{12{,}288} = 48$ — about **48× fewer** trainable parameters. And the savings compound through the training bill from [lesson 37](lesson-03.md): only these $12{,}288$ numbers get gradients, and only they get AdamW's $m,v$ state. The frozen $\mathbf{W}$ needs neither. So gradient memory and optimizer memory both shrink by the same $\sim48\times$, which is what turns a model too big to full-fine-tune into one that fits.
+The ratio is $\dfrac{589{,}824}{12{,}288} = 48$ — about **48× fewer** trainable parameters. And the savings compound through the training bill from [lesson 37](lessons/module-12/lesson-03.md): only these $12{,}288$ numbers get gradients, and only they get AdamW's $m,v$ state. The frozen $\mathbf{W}$ needs neither. So gradient memory and optimizer memory both shrink by the same $\sim48\times$, which is what turns a model too big to full-fine-tune into one that fits.
 
 <div class="callout key"><p>LoRA replaces a full-rank $(d,k)$ update with a rank-$r$ factorization $\mathbf{B}\mathbf{A}$, trading $d\cdot k$ trainable numbers for $r(d+k)$. Because only $\mathbf{A}$ and $\mathbf{B}$ are trainable, gradients and optimizer state shrink by the same factor. At $d=k=768,\ r=8$ that is 48× fewer.</p></div>
 
-Why is a rank-$r$ update enough? Because (the empirical finding behind LoRA) the *adaptation* a downstream task requires lies in a tiny subspace of the full weight space — it has intrinsically low rank ([lesson 11](../module-03/lesson-03.md)). You do not need to move the weight in all $d\cdot k$ directions; a handful, $r$ of them, captures the task.
+Why is a rank-$r$ update enough? Because (the empirical finding behind LoRA) the *adaptation* a downstream task requires lies in a tiny subspace of the full weight space — it has intrinsically low rank ([lesson 11](lessons/module-03/lesson-03.md)). You do not need to move the weight in all $d\cdot k$ directions; a handful, $r$ of them, captures the task.
 
 ## 9. Gradients flow only through $\mathbf{A}$ and $\mathbf{B}$
 
-Since $\mathbf{W}$ is frozen, `backward()` computes gradients only for $\mathbf{A}$ and $\mathbf{B}$. Let $\mathbf{g} = \partial L/\partial\mathbf{h}$ be the upstream gradient arriving at the layer output (shape $d$). Using the linear-layer gradient rules from [lesson 23](../module-08/lesson-01.md) on the LoRA path $\mathbf{h} = \mathbf{B}(\mathbf{A}\mathbf{x})$:
+Since $\mathbf{W}$ is frozen, `backward()` computes gradients only for $\mathbf{A}$ and $\mathbf{B}$. Let $\mathbf{g} = \partial L/\partial\mathbf{h}$ be the upstream gradient arriving at the layer output (shape $d$). Using the linear-layer gradient rules from [lesson 23](lessons/module-08/lesson-01.md) on the LoRA path $\mathbf{h} = \mathbf{B}(\mathbf{A}\mathbf{x})$:
 
 $$
 \frac{\partial L}{\partial \mathbf{B}} = \mathbf{g}\,(\mathbf{A}\mathbf{x})^\top, \qquad
@@ -169,7 +169,7 @@ You form the full $(d,k)$ product $\mathbf{B}\mathbf{A}$ *only here*, once, offl
 
 ## 12. Under the hood
 
-Everything ties back to the accounting from [lesson 37](lesson-03.md):
+Everything ties back to the accounting from [lesson 37](lessons/module-12/lesson-03.md):
 
 - **Only $\mathbf{A}$ and $\mathbf{B}$ are leaves with `requires_grad=True`.** They are the only tensors `backward()` fills a `.grad` for. $\mathbf{W}$'s `.grad` stays `None`.
 - **Optimizer state exists only for $\mathbf{A}$ and $\mathbf{B}$.** AdamW allocates $m,v$ per *trainable* parameter, so the moment buffers are $\sim48\times$ smaller than in full fine-tuning — the memory win, restated in the language of optimizer state.
@@ -207,4 +207,4 @@ $\mathbf{B}=\mathbf{0}$ makes $\Delta\mathbf{W}=\mathbf{B}\mathbf{A}=\mathbf{0}$
 
 You can now adapt a pretrained model cheaply and explain every tensor involved. The final lesson is the capstone: a real training loop read line by line, closing with the checklist that proves you can read GPT-2 code end to end.
 
-Continue to [39 · Read the code: a training loop line by line](lesson-05.md).
+Continue to [39 · Read the code: a training loop line by line](lessons/module-12/lesson-05.md).

@@ -1,7 +1,7 @@
 # 10 · Matrix multiplication
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">09 · Matrices, shapes, and indexing</a> (rows, columns, shape, the (row, col) index order) and <a href="../module-02/lesson-02.md">07 · Adding, scaling, and the dot product</a> — you must be comfortable with the dot product of two vectors, because that is the atom that matrix multiplication is built from.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-03/lesson-01">09 · Matrices, shapes, and indexing</a> (rows, columns, shape, the (row, col) index order) and <a href="#/lessons/module-02/lesson-02">07 · Adding, scaling, and the dot product</a> — you must be comfortable with the dot product of two vectors, because that is the atom that matrix multiplication is built from.</p>
 <p><strong>You will learn:</strong> the matrix–vector product (each output entry is a dot product), then the general matrix–matrix product, the shape rule that governs both, why the order matters, and how every one of these maps onto a line of PyTorch and onto a neural-network layer.</p>
 <p><strong>Why this matters for ML:</strong> this is <em>the</em> operation. A linear layer is a matrix multiply. Attention is matrix multiplies. A Transformer is, by compute, almost entirely matrix multiplies. The rule that inner dimensions must match is the reason tensor shapes dominate every hour you will spend reading Transformer code.</p>
 </div>
@@ -304,4 +304,4 @@ Because it is built almost entirely from matrix multiplies, and every matrix mul
 
 You now have the central operation. The remaining pieces of matrix vocabulary — transpose (which lines up shapes for exactly these products), the identity matrix, the inverse, and rank — round out what you need before moving on to general tensors.
 
-Continue to [11 · Transpose, identity, inverse, rank](lesson-03.md).
+Continue to [11 · Transpose, identity, inverse, rank](lessons/module-03/lesson-03.md).

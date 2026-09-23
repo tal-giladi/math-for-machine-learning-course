@@ -1,7 +1,7 @@
 # 15 · Limits, slope, and the derivative
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-01/lesson-02.md">02 · Functions and the meaning of f(x)</a>, <a href="../module-01/lesson-04.md">04 · Summation, products, inequalities, rates</a> (average rate of change), and <a href="../module-05/lesson-01.md">functions and composition</a>. You need to be comfortable reading $f(x)$ as "feed in $x$, get out a number."</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-01/lesson-02">02 · Functions and the meaning of f(x)</a>, <a href="#/lessons/module-01/lesson-04">04 · Summation, products, inequalities, rates</a> (average rate of change), and <a href="#/lessons/module-05/lesson-01">functions and composition</a>. You need to be comfortable reading $f(x)$ as "feed in $x$, get out a number."</p>
 <p><strong>You will learn:</strong> what a limit is (informally), what continuity means, the slope of a line as rise over run, the average rate of change of a function over an interval, and then the star of the module — the <strong>derivative</strong>, defined as the limit of that average rate as the interval shrinks to zero. You will derive $f'(x)=2x$ for $f(x)=x^2$ by hand and verify it numerically.</p>
 <p><strong>Why this matters for ML:</strong> training a neural network <em>is</em> computing derivatives of a loss with respect to millions of parameters and nudging each one downhill. Every <code>.backward()</code> call in PyTorch is evaluating derivatives. This lesson is where that whole machine starts.</p>
 </div>
@@ -152,7 +152,7 @@ We got $6.001$ — which is exactly $2x + h = 6 + 0.001$, as the algebra promise
 Two notations for the derivative appear throughout ML code and papers, and they mean the same thing:
 
 - **Lagrange notation** $f'(x)$ — compact, good when there is one obvious input. Read "f prime."
-- **Leibniz notation** $\dfrac{df}{dx}$ — reads "the derivative of $f$ with respect to $x$." The $d$ is an infinitesimal (vanishingly small) change; $\frac{df}{dx}$ literally suggests "tiny change in $f$ divided by tiny change in $x$," the difference quotient in the limit. This form is indispensable once several variables are in play, because it names *which* variable you are differentiating with respect to — the seed of partial derivatives in [lesson 4](lesson-04.md).
+- **Leibniz notation** $\dfrac{df}{dx}$ — reads "the derivative of $f$ with respect to $x$." The $d$ is an infinitesimal (vanishingly small) change; $\frac{df}{dx}$ literally suggests "tiny change in $f$ divided by tiny change in $x$," the difference quotient in the limit. This form is indispensable once several variables are in play, because it names *which* variable you are differentiating with respect to — the seed of partial derivatives in [lesson 4](lessons/module-06/lesson-04.md).
 
 For $f(x) = x^2$ we write either $f'(x) = 2x$ or $\dfrac{df}{dx} = 2x$; in Leibniz style people also write $\dfrac{d}{dx}(x^2) = 2x$, treating $\frac{d}{dx}$ as the "take the derivative" operator.
 
@@ -189,7 +189,7 @@ The printed `tensor(6.)` is exactly $f'(3) = 2 \cdot 3 = 6$ — the number we de
 
 3. **Backward applies it.** Calling `y.backward()` walks the recorded graph from `y` back to `x`, evaluating each node's local derivative and depositing the result in the input's `.grad` field. With a single node, the result is just the local derivative $6$, so `x.grad` becomes `tensor(6.)`.
 
-Only tensors you marked with `requires_grad=True` (called **leaf** tensors — the graph's inputs) receive a `.grad`. This is the whole essence of PyTorch's autograd, and it is nothing more than "record the operations on the way forward, then apply their known derivatives on the way back." In [lesson 2](lesson-02.md) we collect the derivative rules autograd uses, and the **chain rule** that lets it stitch many operations together — which, in the next module, becomes backpropagation itself.
+Only tensors you marked with `requires_grad=True` (called **leaf** tensors — the graph's inputs) receive a `.grad`. This is the whole essence of PyTorch's autograd, and it is nothing more than "record the operations on the way forward, then apply their known derivatives on the way back." In [lesson 2](lessons/module-06/lesson-02.md) we collect the derivative rules autograd uses, and the **chain rule** that lets it stitch many operations together — which, in the next module, becomes backpropagation itself.
 
 ## Check yourself
 
@@ -221,4 +221,4 @@ The leaf tensor `x`, because it was created with `requires_grad=True`. `.grad` i
 
 You can now compute a derivative from its definition and you have seen PyTorch produce the same number. Deriving every derivative from scratch would be exhausting, so next we collect the **rules** — power, product, quotient, and above all the **chain rule** — that let you differentiate any composition quickly. The chain rule is the single most important idea for backpropagation.
 
-Continue to [16 · Derivative rules and the chain rule](lesson-02.md).
+Continue to [16 · Derivative rules and the chain rule](lessons/module-06/lesson-02.md).

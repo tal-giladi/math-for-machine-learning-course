@@ -1,7 +1,7 @@
 # 19 · The chain rule and computational graphs
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-06/lesson-02.md">16 · Derivative rules and the chain rule</a> (the single-variable chain rule, power rule, sum rule) and <a href="../module-06/lesson-04.md">18 · Partial derivatives and the gradient</a> (partial derivatives; that <code>.grad</code> holds a derivative). Functions and composition from <a href="../module-05/lesson-01.md">the functions module</a> help.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-06/lesson-02">16 · Derivative rules and the chain rule</a> (the single-variable chain rule, power rule, sum rule) and <a href="#/lessons/module-06/lesson-04">18 · Partial derivatives and the gradient</a> (partial derivatives; that <code>.grad</code> holds a derivative). Functions and composition from <a href="#/lessons/module-05/lesson-01">the functions module</a> help.</p>
 <p><strong>You will learn:</strong> how to read a calculation as a <strong>computational graph</strong>, how every node carries a <strong>local derivative</strong>, how the chain rule multiplies those local derivatives along a path, and how — when a variable feeds several paths — the contributions <strong>add</strong>. This is backpropagation stated as arithmetic on a graph.</p>
 <p><strong>Why this matters for ML:</strong> training a network means computing $\partial L/\partial\theta$ for every parameter. Backpropagation does this by sweeping a computational graph from the loss backward, multiplying local derivatives. Everything in this lesson is that mechanism in miniature — once you see it on a three-node chain, you have seen what PyTorch does on a graph of millions of nodes.</p>
 </div>
@@ -30,7 +30,7 @@ Draw the pipeline as boxes (operations) connected by arrows (values):
 - **Forward pass.** Pushing numbers left-to-right through the boxes is the **forward pass** — it computes the output.
 - **Local derivative.** Every box has a **local derivative**: the derivative of *its output with respect to its own input*, ignoring everything else in the graph. The multiply-by-2 box has local derivative $da/dx = 2$. The square box has local derivative $db/da = 2a$. The add-3 box has local derivative $dy/db = 1$ (adding a constant does not change the slope).
 
-The whole trick of backprop is that these local derivatives are trivial — each box does one tiny operation whose derivative you already know from [module 6](../module-06/lesson-02.md) — and the chain rule stitches them into the global derivative.
+The whole trick of backprop is that these local derivatives are trivial — each box does one tiny operation whose derivative you already know from [module 6](lessons/module-06/lesson-02.md) — and the chain rule stitches them into the global derivative.
 
 ## 3. Computing $dy/dx$ two ways
 
@@ -140,7 +140,7 @@ $$
 - The second term is the path $x \to v \to y$.
 - The $+$ between them is the whole point: **contributions from separate paths add**.
 
-For the multiply node $y = u\cdot v$, the local (partial) derivatives are $\frac{\partial y}{\partial u} = v$ and $\frac{\partial y}{\partial v} = u$ (differentiate with the other factor held fixed — this is exactly a partial derivative from [lesson 18](../module-06/lesson-04.md)). And $\frac{du}{dx} = \frac{dv}{dx} = 1$, since $u = x$ and $v = x$. So
+For the multiply node $y = u\cdot v$, the local (partial) derivatives are $\frac{\partial y}{\partial u} = v$ and $\frac{\partial y}{\partial v} = u$ (differentiate with the other factor held fixed — this is exactly a partial derivative from [lesson 18](lessons/module-06/lesson-04.md)). And $\frac{du}{dx} = \frac{dv}{dx} = 1$, since $u = x$ and $v = x$. So
 
 $$
 \frac{dy}{dx} = v\cdot 1 + u\cdot 1 = u + v = x + x = 2x.
@@ -152,7 +152,7 @@ At $x = 3$: $\frac{dy}{dx} = 6$. Cross-check against the collapsed form $y = x^2
 
 ### 4.2 Why this is the rule for shared parameters
 
-In a Transformer, the same weight matrix multiplies the input at every one of the $T$ sequence positions; the same token-embedding row is reused wherever that token appears; weight tying reuses one matrix as both the input embedding and the output projection. Each of these is a value that fans out to many places in the graph. The gradient PyTorch reports for such a parameter is the *sum* of the gradient contributions from all its uses — precisely the multivariable chain rule at a fan-out. This is also exactly why gradients **accumulate** into `.grad` (the behavior we flagged in [lesson 18](../module-06/lesson-04.md)): accumulation is how the graph sums the branches.
+In a Transformer, the same weight matrix multiplies the input at every one of the $T$ sequence positions; the same token-embedding row is reused wherever that token appears; weight tying reuses one matrix as both the input embedding and the output projection. Each of these is a value that fans out to many places in the graph. The gradient PyTorch reports for such a parameter is the *sum* of the gradient contributions from all its uses — precisely the multivariable chain rule at a fan-out. This is also exactly why gradients **accumulate** into `.grad` (the behavior we flagged in [lesson 18](lessons/module-06/lesson-04.md)): accumulation is how the graph sums the branches.
 
 ## 5. Why ML needs this: backprop is a backward graph sweep
 
@@ -253,4 +253,4 @@ Four — one per position. The matrix is a value that fans out to four downstrea
 
 You now have backpropagation in miniature: a graph, local derivatives, a right-to-left sweep that multiplies them, and a sum wherever a value fans out. The next step is to be precise about the *shapes* of the things being differentiated — a single partial $\partial L/\partial x_i$ versus the whole gradient vector $\nabla_x L$, and what it means to take a gradient with respect to a matrix or an arbitrary tensor of parameters.
 
-Continue to [20 · Gradients: ∂L/∂x vs ∇, with respect to matrices and tensors](lesson-02.md).
+Continue to [20 · Gradients: ∂L/∂x vs ∇, with respect to matrices and tensors](lessons/module-07/lesson-02.md).

@@ -1,7 +1,7 @@
 # 37 · Training a GPT-2-style model end to end
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> this lesson synthesizes the whole course. You need embeddings from <a href="../module-10/lesson-03.md">31 · Embeddings</a>, attention from <a href="../module-11/lesson-01.md">32 · Attention mathematics</a>, the Transformer block from <a href="../module-11/lesson-02.md">33 · The Transformer block</a>, LayerNorm from <a href="../module-11/lesson-03.md">34 · Normalization</a>, cross-entropy from <a href="../module-08/lesson-02.md">24 · Loss functions</a>, backprop from <a href="../module-08/lesson-03.md">25 · Backpropagation and autograd</a>, and AdamW/Muon from <a href="../module-09/lesson-02.md">27 · AdamW</a> and <a href="../module-09/lesson-03.md">28 · Muon</a>.</p>
+<p><strong>Prerequisites:</strong> this lesson synthesizes the whole course. You need embeddings from <a href="#/lessons/module-10/lesson-03">31 · Embeddings</a>, attention from <a href="#/lessons/module-11/lesson-01">32 · Attention mathematics</a>, the Transformer block from <a href="#/lessons/module-11/lesson-02">33 · The Transformer block</a>, LayerNorm from <a href="#/lessons/module-11/lesson-03">34 · Normalization</a>, cross-entropy from <a href="#/lessons/module-08/lesson-02">24 · Loss functions</a>, backprop from <a href="#/lessons/module-08/lesson-03">25 · Backpropagation and autograd</a>, and AdamW/Muon from <a href="#/lessons/module-09/lesson-02">27 · AdamW</a> and <a href="#/lessons/module-09/lesson-03">28 · Muon</a>.</p>
 <p><strong>You will learn:</strong> the entire GPT-2 training step as one pipeline — every tensor's <strong>shape</strong>, the <strong>math</strong> each stage performs, and the <strong>classification</strong> of every quantity as a parameter, activation, gradient, or optimizer state. You will count the parameters of a concrete toy model by hand and tell the whole memory story.</p>
 <p><strong>Why this matters for ML:</strong> after this lesson you can open any real GPT-2 implementation, point at any tensor, and say exactly what it is, what shape it has, which of the four kinds of quantity it is, and where it sits in the forward-backward-update cycle. This is the payoff the whole course was building toward.</p>
 </div>
@@ -67,7 +67,7 @@ The targets are the same tensor **shifted left by one**: the label at position $
 
 ## 4. Stage 2 — embeddings
 
-Two lookup tables turn each integer into a $C$-dimensional vector, from [lesson 31](../module-10/lesson-03.md).
+Two lookup tables turn each integer into a $C$-dimensional vector, from [lesson 31](lessons/module-10/lesson-03.md).
 
 - **Token embedding** `wte`: a matrix of shape $(V, C)$. Row $i$ is the learned vector for token ID $i$. The lookup `wte[tokens]` gathers one row per token, producing shape $(B, T, C)$.
 - **Positional embedding** `wpe`: a matrix of shape $(T_\text{max}, C)$. Row $t$ is the learned vector for *position* $t$. The lookup `wpe[0:T]` gives shape $(T, C)$.
@@ -84,17 +84,17 @@ $$
 | `wpe` | $(T_\text{max}, C) = (8, 64)$ | **parameter** |
 | `x` (embedded input) | $(B, T, C) = (2, 8, 64)$ | **activation** |
 
-The embedding tables are parameters (learned). Their output $x$ is the first activation. Note the gradient behavior from [lesson 31](../module-10/lesson-03.md): only the *rows* of `wte` for tokens that actually appeared get a nonzero gradient this step.
+The embedding tables are parameters (learned). Their output $x$ is the first activation. Note the gradient behavior from [lesson 31](lessons/module-10/lesson-03.md): only the *rows* of `wte` for tokens that actually appeared get a nonzero gradient this step.
 
 ## 5. Stage 3 — the transformer blocks
 
-$x$ now flows through $N = n_\text{layers}$ identical-in-shape blocks. **Every block maps $(B,T,C)\to(B,T,C)$** — the shape is invariant, which is what lets you stack them. Inside each block (pre-LayerNorm GPT-2 style, from [lesson 33](../module-11/lesson-02.md)):
+$x$ now flows through $N = n_\text{layers}$ identical-in-shape blocks. **Every block maps $(B,T,C)\to(B,T,C)$** — the shape is invariant, which is what lets you stack them. Inside each block (pre-LayerNorm GPT-2 style, from [lesson 33](lessons/module-11/lesson-02.md)):
 
 $$
 x \leftarrow x + \text{Attn}(\text{LN}_1(x)), \qquad x \leftarrow x + \text{MLP}(\text{LN}_2(x)).
 $$
 
-The two `x +` are the **residual connections** ([lesson 33](../module-11/lesson-02.md)): they give the backward pass a multiply-by-one path so gradients reach early layers undiminished ([lesson 35](lesson-01.md)). Each block owns these parameters:
+The two `x +` are the **residual connections** ([lesson 33](lessons/module-11/lesson-02.md)): they give the backward pass a multiply-by-one path so gradients reach early layers undiminished ([lesson 35](lessons/module-12/lesson-01.md)). Each block owns these parameters:
 
 | tensor | shape | kind |
 |---|---|---|
@@ -108,7 +108,7 @@ The two `x +` are the **residual connections** ([lesson 33](../module-11/lesson-
 | `mlp.proj.weight` | $(C, 4C) = (64, 256)$ | **parameter** |
 | `mlp.proj.bias` | $(C,) = (64,)$ | **parameter** |
 
-**The math inside attention**, briefly (full derivation in [lesson 32](../module-11/lesson-01.md)). The QKV linear maps $\text{LN}_1(x)$ of shape $(B,T,C)$ to $(B,T,3C)$, split into $Q, K, V$ each $(B,T,C)$, then reshaped to $(B, n_h, T, d_h)$. Attention per head:
+**The math inside attention**, briefly (full derivation in [lesson 32](lessons/module-11/lesson-01.md)). The QKV linear maps $\text{LN}_1(x)$ of shape $(B,T,C)$ to $(B,T,3C)$, split into $Q, K, V$ each $(B,T,C)$, then reshaped to $(B, n_h, T, d_h)$. Attention per head:
 
 $$
 \text{Attn}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_h}} + \text{mask}\right)V,
@@ -141,17 +141,17 @@ A standard GPT-2 economy: **weight tying** sets $W_\text{head} = \text{wte}$ —
 
 ## 7. Stage 5 — the loss
 
-The logits become a scalar loss via cross-entropy against the shifted targets, from [lesson 24](../module-08/lesson-02.md). Conceptually: softmax each length-$V$ logit vector into a probability distribution, then take the negative log-probability the model assigned to the *true* next token, and average over all $B\times T$ positions:
+The logits become a scalar loss via cross-entropy against the shifted targets, from [lesson 24](lessons/module-08/lesson-02.md). Conceptually: softmax each length-$V$ logit vector into a probability distribution, then take the negative log-probability the model assigned to the *true* next token, and average over all $B\times T$ positions:
 
 $$
 L = -\frac{1}{B\,T}\sum_{b=1}^{B}\sum_{t=1}^{T} \log \text{softmax}(\text{logits}_{b,t,:})_{\;y_{b,t}},
 $$
 
-where $y_{b,t}$ is the target token index at that position. In practice `F.cross_entropy` fuses the softmax and log with the log-sum-exp trick for stability ([lesson 35](lesson-01.md)) and takes raw logits.
+where $y_{b,t}$ is the target token index at that position. In practice `F.cross_entropy` fuses the softmax and log with the log-sum-exp trick for stability ([lesson 35](lessons/module-12/lesson-01.md)) and takes raw logits.
 
 - **Shape:** $L$ is a single scalar, shape $()$.
 - **Math:** softmax $\to$ negative log-likelihood $\to$ mean over $B\cdot T = 16$ positions.
-- **Classification:** **activation** (the final one) — a scalar computed from parameters and data. It is the single output whose gradient we want with respect to every parameter, which is exactly the shape reverse-mode AD ([lesson 36](lesson-02.md)) handles in one backward pass.
+- **Classification:** **activation** (the final one) — a scalar computed from parameters and data. It is the single output whose gradient we want with respect to every parameter, which is exactly the shape reverse-mode AD ([lesson 36](lessons/module-12/lesson-02.md)) handles in one backward pass.
 
 ## 8. Stage 6 — backward: filling the gradients
 
@@ -162,14 +162,14 @@ The single most important fact about gradients for the memory story:
 <div class="callout key"><p>Every parameter gets exactly <strong>one gradient of the same shape</strong>. If <code>wte</code> is $(1000,64)$, then <code>wte.grad</code> is $(1000,64)$. The set of all gradients is therefore the same total size as the set of all parameters — a full second copy of the model.</p></div>
 
 - **Shapes:** each `param.grad` matches its `param` exactly.
-- **Math:** a chain of vector-Jacobian products ([lesson 36](lesson-02.md)), never full Jacobians.
+- **Math:** a chain of vector-Jacobian products ([lesson 36](lessons/module-12/lesson-02.md)), never full Jacobians.
 - **Classification:** **gradient.** These live in `.grad` until the optimizer consumes them and `zero_grad()` clears them.
 
-The activations stored in stage 5 are consumed here and then freed — which is why the graph is gone after `backward()` unless you asked to retain it ([lesson 25](../module-08/lesson-03.md)).
+The activations stored in stage 5 are consumed here and then freed — which is why the graph is gone after `backward()` unless you asked to retain it ([lesson 25](lessons/module-08/lesson-03.md)).
 
 ## 9. Stage 7 — the optimizer step
 
-`optimizer.step()` turns gradients into parameter updates. A modern GPT-2-style setup runs **two optimizers side by side** ([lesson 28](../module-09/lesson-03.md)):
+`optimizer.step()` turns gradients into parameter updates. A modern GPT-2-style setup runs **two optimizers side by side** ([lesson 28](lessons/module-09/lesson-03.md)):
 
 - **AdamW** on most parameters — embeddings, all biases, LayerNorm $\gamma/\beta$, the head. For each such parameter it keeps first and second moment estimates $m$ and $v$ (each the same shape as the parameter) and updates $\theta \leftarrow \theta - \eta\big(\hat m/(\sqrt{\hat v}+\varepsilon) + \lambda\theta\big)$.
 - **Muon** on the 2-D hidden weight *matrices* — the QKV, attention-proj, and MLP weights. It keeps a momentum buffer per matrix, orthogonalizes the (momentum-smoothed) gradient via Newton–Schulz, and steps by that.
@@ -182,7 +182,7 @@ The activations stored in stage 5 are consumed here and then freed — which is 
 - **Math:** the AdamW / Muon update rules from module 9.
 - **Classification:** **optimizer state** — persists *between* steps (unlike gradients, which are recomputed each step), and is the reason AdamW needs roughly two extra full-model-sized buffers.
 
-After the step, `optimizer.zero_grad()` clears every `.grad` (recall from [lesson 25](../module-08/lesson-03.md) that `backward()` *accumulates*, so you must reset), and the loop repeats with the next batch.
+After the step, `optimizer.zero_grad()` clears every `.grad` (recall from [lesson 25](lessons/module-08/lesson-03.md) that `backward()` *accumulates*, so you must reset), and the loop repeats with the next batch.
 
 ## 10. Counting the parameters of the toy model
 
@@ -226,7 +226,7 @@ Now you can say precisely what training memory holds. For $P$ parameters, a full
 - **Optimizer state:** $2P$ numbers for AdamW ($m$ and $v$).
 - **Activations:** everything stage 3–5 stored for the backward pass — this piece scales with $B\times T$ (and the model depth/width), *not* just $P$, and is often the largest term for long sequences or big batches.
 
-The first three are fixed at $4P$ numbers regardless of batch size. In float32 (4 bytes) that is $16P$ bytes. For the toy model, $16 \times 264{,}576 \approx 4.23$ MB before activations. For GPT-2 small, $16 \times 124\text{M} \approx 2$ GB before a single activation — which is why the moment counts matter, why mixed precision ([lesson 35](lesson-01.md)) is used to shrink them, and why "the optimizer states are twice the size of the model" is a sentence every practitioner internalizes.
+The first three are fixed at $4P$ numbers regardless of batch size. In float32 (4 bytes) that is $16P$ bytes. For the toy model, $16 \times 264{,}576 \approx 4.23$ MB before activations. For GPT-2 small, $16 \times 124\text{M} \approx 2$ GB before a single activation — which is why the moment counts matter, why mixed precision ([lesson 35](lessons/module-12/lesson-01.md)) is used to shrink them, and why "the optimizer states are twice the size of the model" is a sentence every practitioner internalizes.
 
 <div class="callout warn"><p>AdamW roughly <em>triples</em> the model's memory footprint before activations: parameters + gradients + two moment buffers = four full copies. When someone says a model "doesn't fit for training but fits for inference," this is why — inference needs only the parameters; training needs all four.</p></div>
 
@@ -288,7 +288,7 @@ class GPT(nn.Module):
         return logits, loss
 ```
 
-And the four-line training step — the subject of the [next lesson](lesson-05.md), previewed here so you see where it plugs in:
+And the four-line training step — the subject of the [next lesson](lessons/module-12/lesson-05.md), previewed here so you see where it plugs in:
 
 ```python
 optimizer.zero_grad()                 # clear last step's .grad
@@ -331,7 +331,7 @@ Four full-model copies: parameters ($P$) + gradients ($P$) + AdamW $m$ and $v$ (
 
 <details><summary>Which parameters go to Muon and which to AdamW, and why?</summary>
 
-Muon takes the 2-D hidden weight matrices (QKV, attention proj, MLP fc/proj) because orthogonalization is a statement about a matrix's singular structure. AdamW takes everything else — embeddings, the head, LayerNorm $\gamma/\beta$, and all 1-D biases — which have no meaningful matrix geometry ([lesson 28](../module-09/lesson-03.md)).
+Muon takes the 2-D hidden weight matrices (QKV, attention proj, MLP fc/proj) because orthogonalization is a statement about a matrix's singular structure. AdamW takes everything else — embeddings, the head, LayerNorm $\gamma/\beta$, and all 1-D biases — which have no meaningful matrix geometry ([lesson 28](lessons/module-09/lesson-03.md)).
 
 </details>
 
@@ -339,4 +339,4 @@ Muon takes the 2-D hidden weight matrices (QKV, attention proj, MLP fc/proj) bec
 
 You have assembled the whole model and named every tensor. The final lesson zooms into the four-line training step itself and reads each line — `zero_grad`, forward, `backward`, `step` — as a precise mathematical statement, then annotates a fully realistic loop.
 
-Continue to [38 · Fine-tuning and LoRA](lesson-04.md).
+Continue to [38 · Fine-tuning and LoRA](lessons/module-12/lesson-04.md).

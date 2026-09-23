@@ -1,9 +1,9 @@
 # 33 · The Transformer block
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">32 · Attention mathematics</a> (scaled dot-product and multi-head attention); the $(B, T, C)$ shape and reshape/transpose machinery from <a href="../module-04/lesson-02.md">13 · (B, T, C), reshape, view, permute, broadcast</a>; the branching/fan-out rule for gradients from <a href="../module-07/lesson-01.md">19 · The chain rule and computational graphs</a>; matrix–vector multiplication from <a href="../module-03/lesson-01.md">module 3</a>. LayerNorm gets its own full treatment in the <a href="lesson-03.md">next lesson</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-11/lesson-01">32 · Attention mathematics</a> (scaled dot-product and multi-head attention); the $(B, T, C)$ shape and reshape/transpose machinery from <a href="#/lessons/module-04/lesson-02">13 · (B, T, C), reshape, view, permute, broadcast</a>; the branching/fan-out rule for gradients from <a href="#/lessons/module-07/lesson-01">19 · The chain rule and computational graphs</a>; matrix–vector multiplication from <a href="#/lessons/module-03/lesson-01">module 3</a>. LayerNorm gets its own full treatment in the <a href="#/lessons/module-11/lesson-03">next lesson</a>.</p>
 <p><strong>You will learn:</strong> how to assemble a modern <strong>pre-norm Transformer block</strong> — LayerNorm, QKV projection, attention, output projection, residual, LayerNorm, MLP, residual — naming every parameter matrix and its shape; why residual connections create a gradient highway (with the derivative shown); what GELU is and how it differs from ReLU; and the rough parameter count of a block in terms of $C$.</p>
-<p><strong>Why this matters for ML:</strong> a GPT-2 model is almost nothing but a stack of identical Transformer blocks. Learn one block and you have learned the whole trunk of the network. The residual and normalization structure here is also exactly what makes deep stacks trainable at all — the subject of <a href="../module-12/lesson-01.md">module 12</a>.</p>
+<p><strong>Why this matters for ML:</strong> a GPT-2 model is almost nothing but a stack of identical Transformer blocks. Learn one block and you have learned the whole trunk of the network. The residual and normalization structure here is also exactly what makes deep stacks trainable at all — the subject of <a href="#/lessons/module-12/lesson-01">module 12</a>.</p>
 </div>
 
 ## 1. Intuition: one block, two sublayers
@@ -35,7 +35,7 @@ The top line carrying $x$ straight through to each $(+)$ is the **residual strea
 
 ## 3. LayerNorm
 
-Each sublayer's input first passes through a **LayerNorm**, which rescales each token's $C$-vector to have mean $0$ and variance $1$, then applies a learned scale $\gamma$ and shift $\beta$ (both length $C$). The full mechanics — mean, variance, the $\varepsilon$ term, the backward pass — are the whole of the [next lesson](lesson-03.md); here you only need three facts:
+Each sublayer's input first passes through a **LayerNorm**, which rescales each token's $C$-vector to have mean $0$ and variance $1$, then applies a learned scale $\gamma$ and shift $\beta$ (both length $C$). The full mechanics — mean, variance, the $\varepsilon$ term, the backward pass — are the whole of the [next lesson](lessons/module-11/lesson-03.md); here you only need three facts:
 
 - It operates **per token, over the $C$ feature axis**, independently for each $(b, t)$ position.
 - It has two parameter vectors, $\gamma$ and $\beta$, each of shape $(C,)$ — a total of $2C$ parameters, negligible next to the big matrices below.
@@ -51,7 +51,7 @@ $$
 [\,Q \mid K \mid V\,] = \mathrm{LayerNorm}_1(x)\, W_{qkv} + b_{qkv},
 $$
 
-with $W_{qkv}$ of shape $(C, 3C)$ and bias $b_{qkv}$ of shape $(3C,)$. For each token the layer outputs $3C$ numbers, which we slice into three $C$-vectors: the first $C$ are that token's query, the next $C$ its key, the last $C$ its value. (Producing all three with one $C \times 3C$ matrix instead of three separate $C \times C$ matrices is just an efficiency: one matmul rather than three.) Each of $Q, K, V$ is then reshaped into $(B, n_h, T, d_h)$ and fed to the attention of [lesson 1](lesson-01.md).
+with $W_{qkv}$ of shape $(C, 3C)$ and bias $b_{qkv}$ of shape $(3C,)$. For each token the layer outputs $3C$ numbers, which we slice into three $C$-vectors: the first $C$ are that token's query, the next $C$ its key, the last $C$ its value. (Producing all three with one $C \times 3C$ matrix instead of three separate $C \times C$ matrices is just an efficiency: one matmul rather than three.) Each of $Q, K, V$ is then reshaped into $(B, n_h, T, d_h)$ and fed to the attention of [lesson 1](lessons/module-11/lesson-01.md).
 
 Parameter cost: the matrix $W_{qkv}$ has $C \cdot 3C = 3C^2$ entries.
 
@@ -85,7 +85,7 @@ $$
 \frac{\partial x'}{\partial x} = \frac{\partial}{\partial x}\big(x + f(x)\big) = 1 + f'(x).
 $$
 
-The key is that leading **$1$**. During backpropagation, the gradient arriving at $x'$ is passed to $x$ multiplied by $(1 + f'(x))$. Even if the sublayer's own derivative $f'(x)$ is tiny — which happens when a layer is near-saturated or barely contributing — the gradient still reaches $x$ essentially undiminished, because of the $+1$. Without the residual, the backward factor would be just $f'(x)$, and a chain of $36$ tiny factors multiplied together would shrink toward zero: the **vanishing gradient** problem, where early layers stop learning. The residual guarantees each block contributes an additive $1$ to the backward path, so gradients flow from the loss all the way back to the earliest block. This connection to vanishing and exploding gradients in deep stacks is the theme of [module 12](../module-12/lesson-01.md).
+The key is that leading **$1$**. During backpropagation, the gradient arriving at $x'$ is passed to $x$ multiplied by $(1 + f'(x))$. Even if the sublayer's own derivative $f'(x)$ is tiny — which happens when a layer is near-saturated or barely contributing — the gradient still reaches $x$ essentially undiminished, because of the $+1$. Without the residual, the backward factor would be just $f'(x)$, and a chain of $36$ tiny factors multiplied together would shrink toward zero: the **vanishing gradient** problem, where early layers stop learning. The residual guarantees each block contributes an additive $1$ to the backward path, so gradients flow from the loss all the way back to the earliest block. This connection to vanishing and exploding gradients in deep stacks is the theme of [module 12](lessons/module-12/lesson-01.md).
 
 <div class="callout key"><p>A residual $x' = x + f(x)$ has derivative $1 + f'(x)$. The $+1$ is a gradient highway: it carries the gradient back through the block undiminished even when the sublayer's own gradient $f'(x)$ is near zero. This is what makes a stack of dozens of blocks trainable.</p></div>
 
@@ -230,7 +230,7 @@ The output shape equals the input shape, $(B, T, C)$, so `block` composes with i
 
 ## 12. What PyTorch is doing under the hood
 
-**The residual splits the gradient two ways.** In the forward pass, `x = x + self.attention(self.ln1(x))` uses `x` in two places: it flows straight into the sum, and it flows into the attention branch. That is a **fan-out**, and by the branching rule from [lesson 19](../module-07/lesson-01.md), the gradient of `x` on the backward pass is the *sum* of the two contributions coming back: one arriving directly through the addition (with local derivative $1$ — the highway), and one arriving through the whole attention sublayer (with the sublayer's own derivative). Autograd implements the `+` with a backward rule that simply copies the incoming gradient to *both* inputs, which is precisely the $1 + f'(x)$ of section 6 realized as graph arithmetic.
+**The residual splits the gradient two ways.** In the forward pass, `x = x + self.attention(self.ln1(x))` uses `x` in two places: it flows straight into the sum, and it flows into the attention branch. That is a **fan-out**, and by the branching rule from [lesson 19](lessons/module-07/lesson-01.md), the gradient of `x` on the backward pass is the *sum* of the two contributions coming back: one arriving directly through the addition (with local derivative $1$ — the highway), and one arriving through the whole attention sublayer (with the sublayer's own derivative). Autograd implements the `+` with a backward rule that simply copies the incoming gradient to *both* inputs, which is precisely the $1 + f'(x)$ of section 6 realized as graph arithmetic.
 
 **GELU's derivative is handled automatically.** `nn.GELU()` registers a backward rule for its smooth activation, so when `loss.backward()` runs, autograd multiplies the upstream gradient by GELU's local derivative at each hidden unit — no manual formula needed. Because GELU is smooth, that derivative is defined and nonzero almost everywhere, unlike ReLU's flat-zero region for negatives.
 
@@ -266,4 +266,4 @@ GELU is smooth (differentiable everywhere, no hard corner at $0$), and it passes
 
 You can now assemble and read a full Transformer block: two sublayers, each normalized, wrapped in a residual, mapping $(B, T, C)$ to $(B, T, C)$ so blocks stack. The one component we deferred is the LayerNorm itself — its mean/variance arithmetic, its backward pass, and its cheaper cousin RMSNorm. That is the next lesson.
 
-Continue to [34 · Normalization: LayerNorm & RMSNorm](lesson-03.md).
+Continue to [34 · Normalization: LayerNorm & RMSNorm](lessons/module-11/lesson-03.md).

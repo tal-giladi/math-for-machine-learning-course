@@ -1,7 +1,7 @@
 # 07 · Adding, scaling, and the dot product
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">06 · What a vector is</a> (components, dimension, the tensor-vs-list distinction), and summation notation $\sum$ from <a href="../module-01/lesson-05.md">05 · Reading mathematical notation</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-02/lesson-01">06 · What a vector is</a> (components, dimension, the tensor-vs-list distinction), and summation notation $\sum$ from <a href="#/lessons/module-01/lesson-05">05 · Reading mathematical notation</a>.</p>
 <p><strong>You will learn:</strong> The three operations that turn vectors from static lists into a working algebra — component-wise addition, scalar multiplication, and the <strong>dot product</strong> — with the geometry, worked arithmetic, and the exact PyTorch calls for each.</p>
 <p><strong>Why this matters for ML:</strong> A single neuron computes a dot product of its inputs and its weights. Every entry of every matrix multiplication in a Transformer is a dot product. This one operation, repeated billions of times, is what a neural network mostly <em>does</em>.</p>
 </div>
@@ -180,4 +180,4 @@ A neuron's pre-activation is $z=\mathbf{w}\cdot\mathbf{x}+b$: it dots the input 
 
 You now have addition, scaling, and the dot product — but we kept invoking a vector's *length* $\|\mathbf{x}\|$ and the *angle* $\theta$ between vectors without defining them. The next lesson makes both precise: norms, unit vectors, cosine similarity, and projection — and closes the loop on the geometric formula $\mathbf{x}\cdot\mathbf{w}=\|\mathbf{x}\|\|\mathbf{w}\|\cos\theta$.
 
-→ [08 · Norm, unit vectors, cosine, projection](lesson-03.md)
+→ [08 · Norm, unit vectors, cosine, projection](lessons/module-02/lesson-03.md)

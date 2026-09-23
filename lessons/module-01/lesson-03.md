@@ -1,7 +1,7 @@
 # 03 · Powers, roots, exponentials, logarithms
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">Lesson 01</a> (numbers, expressions) and <a href="lesson-02.md">Lesson 02</a> (functions and $f(x)$).</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-01/lesson-01">Lesson 01</a> (numbers, expressions) and <a href="#/lessons/module-01/lesson-02">Lesson 02</a> (functions and $f(x)$).</p>
 <p><strong>You will learn:</strong> Powers and their rules, negative and fractional exponents (which are roots), the square root; the exponential function $e^x$ and why the number $e$ is special; the natural logarithm $\ln$ as the inverse of $e^x$, and the logarithm rules; and why logarithms are everywhere in ML.</p>
 <p><strong>Why this matters for ML:</strong> Probabilities come out of an exponential (the softmax uses $e^x$). The loss that trains every language model is built from $\ln$ (cross-entropy is a negative log-probability). And logarithms are the standard trick for keeping tiny probabilities from underflowing to zero in floating point. You cannot read a loss function without these four tools.</p>
 </div>
@@ -221,4 +221,4 @@ $-\ln(0.9) \approx 0.105$ (small), while $-\ln(0.1) \approx 2.303$ (much larger)
 
 You now have exponentials and logs — the machinery behind probabilities and loss. Next we pick up the compact notation for *adding up* and *multiplying together* many terms (the $\sum$ and $\prod$ symbols), plus inequalities and the first whisper of calculus: average rate of change.
 
-[04 · Summation, products, inequalities, rates →](lesson-04.md)
+[04 · Summation, products, inequalities, rates →](lessons/module-01/lesson-04.md)

@@ -1,7 +1,7 @@
 # 31 · Embeddings
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> matrix–vector multiplication from <a href="../module-03/lesson-02.md">10 · Matrix multiplication</a>; the $(V, C)$ weight convention and the LM head from <a href="lesson-02.md">30 · Softmax and language-modeling math</a>; how a selected element passes gradient (backprop) from <a href="../module-08/lesson-03.md">25 · Backpropagation and autograd</a>.</p>
+<p><strong>Prerequisites:</strong> matrix–vector multiplication from <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>; the $(V, C)$ weight convention and the LM head from <a href="#/lessons/module-10/lesson-02">30 · Softmax and language-modeling math</a>; how a selected element passes gradient (backprop) from <a href="#/lessons/module-08/lesson-03">25 · Backpropagation and autograd</a>.</p>
 <p><strong>You will learn:</strong> the mathematics of an embedding lookup — a token ID indexing into an embedding matrix $\mathbf{E}$ of shape $(V, C)$; the one-hot interpretation that reveals the lookup to be a matrix multiplication; why gradients through a lookup are <strong>sparse</strong> (only the selected rows get a gradient); GPT-2's token embedding <code>wte</code> plus positional embedding <code>wpe</code>; the difference between a static embedding, a contextual representation, and a final hidden state; and weight tying with the LM head.</p>
 <p><strong>Why this matters for ML:</strong> embeddings are how discrete tokens enter a network that only does arithmetic on real numbers. The embedding matrix is usually the single largest parameter tensor in a GPT-2 model, and understanding that a lookup is a differentiable matmul is what makes its gradient behavior — and weight tying — make sense.</p>
 </div>
@@ -170,13 +170,13 @@ It is easy to conflate three distinct representations that all live in $\mathbb{
 
 - **Token embedding lookup** — $\mathbf{E}_\text{wte}[t]$. *Static*: it depends only on the token ID, not on the surrounding words. "bank" has one fixed embedding whether it is a river bank or a money bank.
 - **Contextual representation** — the vector after one or more Transformer blocks have run. Attention has *mixed in* information from the other positions, so "bank" now differs depending on its neighbours. There is one such vector per layer.
-- **Final hidden state** — the contextual representation at the very top of the stack, $\mathbf{h}$ from [lesson 30](lesson-02.md). This is the vector fed to the LM head to produce next-token logits.
+- **Final hidden state** — the contextual representation at the very top of the stack, $\mathbf{h}$ from [lesson 30](lessons/module-10/lesson-02.md). This is the vector fed to the LM head to produce next-token logits.
 
 The journey of a token is: ID $\to$ static embedding (+ position) $\to$ contextual representations through the layers $\to$ final hidden state $\to$ logits $\to$ distribution.
 
 ## 7. Weight tying: the embedding is the LM head
 
-Recall from [lesson 30](lesson-02.md) that the LM head weight is shape $(V, C)$ — one $C$-vector per token — and the token embedding $\mathbf{E}_\text{wte}$ is *also* $(V, C)$ — one $C$-vector per token. GPT-2 **ties** them: the same matrix serves as the input embedding (row $t$ read on the way in) and the output projection (row $t$ dotted against the hidden state on the way out, since the LM head computes $\mathbf{h}\,\mathbf{E}_\text{wte}^\top$).
+Recall from [lesson 30](lessons/module-10/lesson-02.md) that the LM head weight is shape $(V, C)$ — one $C$-vector per token — and the token embedding $\mathbf{E}_\text{wte}$ is *also* $(V, C)$ — one $C$-vector per token. GPT-2 **ties** them: the same matrix serves as the input embedding (row $t$ read on the way in) and the output projection (row $t$ dotted against the hidden state on the way out, since the LM head computes $\mathbf{h}\,\mathbf{E}_\text{wte}^\top$).
 
 This makes sense: the vector that *means* "cat" and the vector used to *score* "cat" should be the same object. Practically, tying removes a $50257 \times 768 \approx 38.6$ million-parameter matrix — a large fraction of GPT-2 small's total — and often improves quality. It also means a gradient reaches $\mathbf{E}_\text{wte}$ from two directions each step: the sparse lookup path (section 4) and the dense LM-head path (every row gets a gradient from the softmax). The row for a token used as input *and* scored as output accumulates both.
 
@@ -186,7 +186,7 @@ This makes sense: the vector that *means* "cat" and the vector used to *score* "
 
 **Backward is a scatter-add.** When `backward()` runs, autograd takes the upstream gradient for each output row and *adds* it into the corresponding row of `.weight.grad`, leaving all other rows zero. "Add," not "assign," matters: if the same token ID appears several times in the batch, each occurrence contributes a gradient and they **accumulate** into that one row — the scatter-add sums them. This is the concrete mechanism behind "only selected rows receive gradients," and it is why `nn.Embedding` can declare `sparse=True` to store the gradient as a sparse tensor and let optimizers update only the touched rows.
 
-**It is a leaf parameter like any other.** `emb.weight` has `requires_grad=True`, appears in `model.parameters()`, and is updated by the optimizer exactly like a linear layer's weight. The only thing special is the *shape* of its gradient — mostly zeros — and the efficient gather/scatter kernels that avoid ever forming the one-hot. Everything you learned about `requires_grad`, `grad_fn`, `.grad`, and `zero_grad()` in [lesson 25](../module-08/lesson-03.md) applies unchanged.
+**It is a leaf parameter like any other.** `emb.weight` has `requires_grad=True`, appears in `model.parameters()`, and is updated by the optimizer exactly like a linear layer's weight. The only thing special is the *shape* of its gradient — mostly zeros — and the efficient gather/scatter kernels that avoid ever forming the one-hot. Everything you learned about `requires_grad`, `grad_fn`, `.grad`, and `zero_grad()` in [lesson 25](lessons/module-08/lesson-03.md) applies unchanged.
 
 ## Check yourself
 
@@ -218,4 +218,4 @@ The static embedding $\mathbf{E}_\text{wte}[t]$ depends only on the token ID. Th
 
 You have now traced a token all the way in (ID $\to$ embedding $+$ position) and, from the previous two lessons, all the way out (hidden state $\to$ logits $\to$ softmax $\to$ distribution $\to$ loss). The one black box remaining between them is what turns a static embedding into a contextual representation: **attention**. The next module builds attention from scratch — queries, keys, values, dot-product scores, scaling, causal masking, and the weighted sum — with tiny matrices worked by hand.
 
-Continue to [../module-11/lesson-01.md](../module-11/lesson-01.md).
+Continue to [../module-11/lesson-01.md](lessons/module-11/lesson-01.md).

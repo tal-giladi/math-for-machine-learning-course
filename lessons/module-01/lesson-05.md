@@ -1,7 +1,7 @@
 # 05 · The notation zoo: ∂ ∇ ‖x‖ indices transpose
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> Lessons <a href="lesson-01.md">01</a>–<a href="lesson-04.md">04</a> — numbers, functions, powers/logs, and summation.</p>
+<p><strong>Prerequisites:</strong> Lessons <a href="#/lessons/module-01/lesson-01">01</a>–<a href="#/lessons/module-01/lesson-04">04</a> — numbers, functions, powers/logs, and summation.</p>
 <p><strong>You will learn:</strong> A first, friendly pass over the symbols the rest of the course leans on — subscripts and superscripts, indices, $\partial$, $\nabla$, $\|x\|$, transpose $A^\top$, inverse $A^{-1}$, elementwise $\odot$, and the relation symbols $\approx$, $\propto$, $\in$, plus $\arg\max$ / $\arg\min$.</p>
 <p><strong>Why this matters for ML:</strong> ML papers and PyTorch code are dense with these symbols. Meeting them once, with a rough meaning and a pointer to where each gets its full lesson, means they will read as words instead of noise when you hit them for real.</p>
 </div>
@@ -177,4 +177,4 @@ $|x|$ is the absolute value of a single number — its distance from $0$. $\|\ma
 
 That closes Part 1: you can now read the language of mathematics — numbers, variables, functions, powers, logs, sums, products, and the symbol zoo. Part 2 puts that language to work on the first real ML object, the **vector**: a list of numbers that will represent a token, a hidden state, or a gradient.
 
-[06 · What a vector is →](../module-02/lesson-01.md)
+[06 · What a vector is →](lessons/module-02/lesson-01.md)

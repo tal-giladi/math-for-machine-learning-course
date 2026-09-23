@@ -121,6 +121,6 @@ what each symbol does.
 ---
 
 ## Reference sheets
-- **[Math cheat sheet](../assets/math-cheatsheet.md)** — the most important formulas in one place.
-- **[PyTorch cheat sheet](../assets/pytorch-cheatsheet.md)** — each math concept mapped to the PyTorch that does it.
-- **[Glossary](../assets/glossary.md)** — every term, defined.
+- **[Math cheat sheet](assets/math-cheatsheet.md)** — the most important formulas in one place.
+- **[PyTorch cheat sheet](assets/pytorch-cheatsheet.md)** — each math concept mapped to the PyTorch that does it.
+- **[Glossary](assets/glossary.md)** — every term, defined.

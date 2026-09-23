@@ -1,7 +1,7 @@
 # 24 · Loss functions
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">23 · The linear layer, forward and backward by hand</a> (you saw squared error used as a loss), the softmax and its derivative from <a href="../module-06/lesson-03.md">17 · Derivatives of exp, log, sigmoid, softmax</a>, and logarithms from <a href="../module-01/lesson-03.md">03 · Powers, roots, exponentials, logarithms</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-08/lesson-01">23 · The linear layer, forward and backward by hand</a> (you saw squared error used as a loss), the softmax and its derivative from <a href="#/lessons/module-06/lesson-03">17 · Derivatives of exp, log, sigmoid, softmax</a>, and logarithms from <a href="#/lessons/module-01/lesson-03">03 · Powers, roots, exponentials, logarithms</a>.</p>
 <p><strong>You will learn:</strong> what a <strong>loss function</strong> is, the two regression losses (<strong>MSE</strong>, <strong>MAE</strong>), and the classification stack — <strong>softmax</strong>, <strong>log-softmax</strong>, <strong>cross-entropy</strong>, <strong>negative log likelihood</strong> (NLL), and <strong>binary cross-entropy</strong> (BCE) — with a worked language-model example from logits all the way to a single loss number and its gradient.</p>
 <p><strong>Why this matters for ML:</strong> the loss is the one number training minimizes, and its gradient is where every backward pass begins (it was $\partial L/\partial y$ in the previous lesson). GPT-2 is trained with cross-entropy on next-token predictions, so understanding that loss — and why PyTorch fuses it with log-softmax — is understanding the objective the whole model is optimizing.</p>
 </div>
@@ -42,7 +42,7 @@ $$
 L_{\text{MSE}} = \frac{0.25 + 0.25 + 0}{3} = \frac{0.5}{3} = 0.1667.
 $$
 
-The single-element MSE was exactly the loss $L = (y-t)^2$ in [lesson 23](lesson-01.md), and its derivative $2(\hat{y}-y)/n$ is the $\partial L/\partial y$ that launched that backward pass. Squaring makes MSE smooth and heavily punish outliers — one badly-wrong prediction dominates the sum.
+The single-element MSE was exactly the loss $L = (y-t)^2$ in [lesson 23](lessons/module-08/lesson-01.md), and its derivative $2(\hat{y}-y)/n$ is the $\partial L/\partial y$ that launched that backward pass. Squaring makes MSE smooth and heavily punish outliers — one badly-wrong prediction dominates the sum.
 
 ### 2.2 Mean absolute error (MAE)
 
@@ -75,7 +75,7 @@ $$
 - $\sum_j e^{z_j}$ — the normalizer, so the outputs sum to $1$.
 - The result is a vector of probabilities: each in $(0,1)$, summing to $1$.
 
-We derived this and its Jacobian in [lesson 17](../module-06/lesson-03.md). Larger logits get exponentially larger shares of the probability mass.
+We derived this and its Jacobian in [lesson 17](lessons/module-06/lesson-03.md). Larger logits get exponentially larger shares of the probability mass.
 
 ### 3.2 Log-softmax
 
@@ -156,13 +156,13 @@ $$
 \frac{\partial L_{\text{CE}}}{\partial \mathbf{z}} = \mathbf{p} - \mathbf{y},
 $$
 
-the predicted probabilities minus the one-hot target. This is proved in [lesson 17](../module-06/lesson-03.md): the messy softmax Jacobian and the $-\log$ derivative combine and cancel almost everything, leaving just $\mathbf{p} - \mathbf{y}$. For our example, the one-hot target for "dog" is $\mathbf{y} = [0, 1, 0]$, so
+the predicted probabilities minus the one-hot target. This is proved in [lesson 17](lessons/module-06/lesson-03.md): the messy softmax Jacobian and the $-\log$ derivative combine and cancel almost everything, leaving just $\mathbf{p} - \mathbf{y}$. For our example, the one-hot target for "dog" is $\mathbf{y} = [0, 1, 0]$, so
 
 $$
 \frac{\partial L_{\text{CE}}}{\partial \mathbf{z}} = [0.6652,\ 0.2447,\ 0.0900] - [0,\ 1,\ 0] = [0.6652,\ -0.7553,\ 0.0900].
 $$
 
-Read the signs: the correct class "dog" has a **negative** gradient ($-0.7553$), so training will *raise* its logit; the two wrong classes have positive gradients, so their logits get *pushed down*. The gradient magnitude on "dog" is largest because that is where the model is most wrong. This single vector is what flows back into the network as the starting upstream gradient of the entire backward pass — the classification analogue of $\partial L/\partial y$ from [lesson 23](lesson-01.md).
+Read the signs: the correct class "dog" has a **negative** gradient ($-0.7553$), so training will *raise* its logit; the two wrong classes have positive gradients, so their logits get *pushed down*. The gradient magnitude on "dog" is largest because that is where the model is most wrong. This single vector is what flows back into the network as the starting upstream gradient of the entire backward pass — the classification analogue of $\partial L/\partial y$ from [lesson 23](lessons/module-08/lesson-01.md).
 
 <div class="callout key"><p>Cross-entropy on a one-hot target reduces to $-\log p_c$, the negative log probability of the true class. Its gradient with respect to the logits is simply $\mathbf{p} - \mathbf{y}$: predicted minus target. That clean form is why classification networks are trained on logits with cross-entropy — the backward pass starts from a trivial subtraction.</p></div>
 
@@ -248,7 +248,7 @@ Why does `F.cross_entropy` fuse log-softmax and NLL into one op instead of letti
 
 Softmax exponentiates the logits. Real logits can be large — a logit of $100$ gives $e^{100} \approx 2.7\times 10^{43}$, and $e^{1000}$ simply **overflows** to `inf` in floating point. Then $\text{inf}/\text{inf} = $ `NaN`, and the loss is ruined. Taking `log` of a softmax output that underflowed to exactly $0.0$ gives $\log(0) = -\text{inf}$, equally fatal.
 
-Log-softmax sidesteps both. Using the log-sum-exp term from section 3.2, PyTorch computes $z_i - \log\sum_j e^{z_j}$, and it evaluates that $\log\sum e$ with the **max-subtraction trick**: factor out the largest logit $m$ so the exponentials are all $e^{z_j - m} \le 1$ — no overflow — while the answer is mathematically unchanged. Combining log-softmax with NLL in one kernel means the fragile intermediate probability is never materialized at all. This is the same log-sum-exp stability idea we treat in depth in [module 12](../module-12/lesson-01.md); for now the practical rule stands: feed logits to `cross_entropy`, never pre-softmaxed probabilities. The same reasoning is why `binary_cross_entropy_with_logits` is preferred over applying `sigmoid` then `binary_cross_entropy`.
+Log-softmax sidesteps both. Using the log-sum-exp term from section 3.2, PyTorch computes $z_i - \log\sum_j e^{z_j}$, and it evaluates that $\log\sum e$ with the **max-subtraction trick**: factor out the largest logit $m$ so the exponentials are all $e^{z_j - m} \le 1$ — no overflow — while the answer is mathematically unchanged. Combining log-softmax with NLL in one kernel means the fragile intermediate probability is never materialized at all. This is the same log-sum-exp stability idea we treat in depth in [module 12](lessons/module-12/lesson-01.md); for now the practical rule stands: feed logits to `cross_entropy`, never pre-softmaxed probabilities. The same reasoning is why `binary_cross_entropy_with_logits` is preferred over applying `sigmoid` then `binary_cross_entropy`.
 
 ## Check yourself
 
@@ -280,4 +280,4 @@ MSE squares the residuals, so a single large error contributes its square and do
 
 You can now turn any prediction into a single loss number and — crucially — you have its gradient, the seed of the backward pass. The next lesson ties the by-hand backward pass of lesson 23 and the $\mathbf{p} - \mathbf{y}$ gradient here to the machinery inside PyTorch: `requires_grad`, `grad_fn`, the graph, gradient accumulation, and `zero_grad()`. That is backpropagation and autograd, demystified end to end.
 
-Continue to [25 · Backpropagation and autograd](lesson-03.md).
+Continue to [25 · Backpropagation and autograd](lessons/module-08/lesson-03.md).

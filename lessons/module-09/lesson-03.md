@@ -1,7 +1,7 @@
 # 28 · Muon
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">26 · Gradient descent</a> and <a href="lesson-02.md">27 · SGD, momentum, RMSProp, Adam, AdamW</a>; matrix multiplication and the transpose from <a href="../module-03/lesson-02.md">10 · Matrix multiplication</a>; and especially rank and transpose from <a href="../module-03/lesson-03.md">11 · Transpose, identity, inverse, rank</a>. Gradients with respect to matrices from <a href="../module-08/lesson-01.md">backpropagation</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-09/lesson-01">26 · Gradient descent</a> and <a href="#/lessons/module-09/lesson-02">27 · SGD, momentum, RMSProp, Adam, AdamW</a>; matrix multiplication and the transpose from <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>; and especially rank and transpose from <a href="#/lessons/module-03/lesson-03">11 · Transpose, identity, inverse, rank</a>. Gradients with respect to matrices from <a href="#/lessons/module-08/lesson-01">backpropagation</a>.</p>
 <p><strong>You will learn:</strong> why a gradient with respect to a weight <em>matrix</em> has geometric structure that ordinary optimizers ignore, what the singular value decomposition (SVD) says about that structure, what it means to <strong>orthogonalize</strong> a gradient (replace it by the nearest rotation, $U V^\top$), the Newton–Schulz iteration that computes this with only matrix multiplications, and a complete calculator-sized example of a Muon update from forward pass to new weights.</p>
 <p><strong>Why this matters for ML:</strong> Muon is a recent optimizer that trains the hidden weight matrices of Transformers faster than AdamW by treating each gradient as a geometric map rather than a flat bag of numbers. Understanding it means understanding what the <em>shape</em> of an update is, and why equalizing a matrix's singular values can help.</p>
 </div>
@@ -20,7 +20,7 @@ Adam is the same idea with each entry independently smoothed and scaled. In ever
 
 ## 2. Why the gradient has matrix *structure*
 
-Here is the thing the flat-bag view throws away. $\mathbf{W}$ is not a random pile of numbers; it is a **linear map** from one space to another (from the layer's input space to its output space — see [lesson 10](../module-03/lesson-02.md) for matrix–vector multiplication as a transformation). A map has geometry: it stretches some directions, shrinks others, and rotates. The gradient $\mathbf{G}$ is a matrix of the same shape, so it too describes a map, and its rows, columns, and — most importantly — its *singular directions* carry geometric meaning about how the loss wants the layer to change.
+Here is the thing the flat-bag view throws away. $\mathbf{W}$ is not a random pile of numbers; it is a **linear map** from one space to another (from the layer's input space to its output space — see [lesson 10](lessons/module-03/lesson-02.md) for matrix–vector multiplication as a transformation). A map has geometry: it stretches some directions, shrinks others, and rotates. The gradient $\mathbf{G}$ is a matrix of the same shape, so it too describes a map, and its rows, columns, and — most importantly — its *singular directions* carry geometric meaning about how the loss wants the layer to change.
 
 ### A light recap of the SVD
 
@@ -33,7 +33,7 @@ $$
 - $\boldsymbol{\Sigma}$ (Sigma) — a diagonal matrix of **singular values** $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$. These are non-negative **stretch factors**: how much the map scales along each of its principal directions.
 - $\mathbf{U}$ and $\mathbf{V}$ — **orthonormal** matrices (their columns are perpendicular unit vectors). Geometrically they are pure **rotations** (or reflections): they change orientation but never stretch. $\mathbf{V}^\top$ rotates the input, $\boldsymbol{\Sigma}$ stretches along axes, $\mathbf{U}$ rotates the result.
 
-So the SVD says *every* matrix is "rotate, then stretch each axis by its $\sigma$, then rotate." The rank of $\mathbf{G}$ (from [lesson 11](../module-03/lesson-03.md)) is just the number of nonzero singular values. The singular values are exactly the geometric content the element-wise view cannot see.
+So the SVD says *every* matrix is "rotate, then stretch each axis by its $\sigma$, then rotate." The rank of $\mathbf{G}$ (from [lesson 11](lessons/module-03/lesson-03.md)) is just the number of nonzero singular values. The singular values are exactly the geometric content the element-wise view cannot see.
 
 ## 3. Why element-wise updates may be suboptimal
 
@@ -190,9 +190,9 @@ If instead $\mathbf{G} = \begin{bmatrix} 3 & 0 \\ 0 & 1 \end{bmatrix}$ (already 
 
 A production Muon implementation has three moving parts:
 
-1. **Momentum on the raw gradient first.** Just like [lesson 27](lesson-02.md)'s momentum, Muon keeps a velocity buffer, $\mathbf{buf} \leftarrow \mu\,\mathbf{buf} + \mathbf{G}$, and orthogonalizes *that* smoothed gradient, not the noisy single-step $\mathbf{G}$.
+1. **Momentum on the raw gradient first.** Just like [lesson 27](lessons/module-09/lesson-02.md)'s momentum, Muon keeps a velocity buffer, $\mathbf{buf} \leftarrow \mu\,\mathbf{buf} + \mathbf{G}$, and orthogonalizes *that* smoothed gradient, not the noisy single-step $\mathbf{G}$.
 2. **A `zeropower_via_newtonschulz5`-style function** that runs about five Newton–Schulz iterations on each 2-D weight's (momentum-smoothed) gradient to produce $\approx \mathbf{U}\mathbf{V}^\top$, using only matmuls, typically in `bfloat16` for speed.
-3. **Muon only for hidden 2-D matrices.** The orthogonalization idea needs a genuine matrix. So Muon is applied to the hidden weight matrices (attention and MLP projections), while 1-D parameters and the input/output layers — token **embeddings** and the final classifier **head** — are trained with **AdamW** from [lesson 27](lesson-02.md). A real training script runs *two* optimizers side by side.
+3. **Muon only for hidden 2-D matrices.** The orthogonalization idea needs a genuine matrix. So Muon is applied to the hidden weight matrices (attention and MLP projections), while 1-D parameters and the input/output layers — token **embeddings** and the final classifier **head** — are trained with **AdamW** from [lesson 27](lessons/module-09/lesson-02.md). A real training script runs *two* optimizers side by side.
 
 Here is a faithful, minimal version of the orthogonalization and the update:
 
@@ -261,4 +261,4 @@ Orthogonalization is a statement about a matrix's singular structure, which is m
 
 You now understand the full optimizer landscape used to train GPT-style models: gradient descent, the adaptive family up to AdamW, and Muon's geometric update. With optimization complete, the course turns to the probability and statistics that explain *what* a language model's output actually represents.
 
-Continue to [the next module](../module-10/lesson-01.md).
+Continue to [the next module](lessons/module-10/lesson-01.md).

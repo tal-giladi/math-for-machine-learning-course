@@ -1,7 +1,7 @@
 # 12 · From scalar to N-D tensor
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="../module-03/lesson-01.md">09 · Matrices, shapes, and indexing</a> and <a href="../module-03/lesson-02.md">10 · Matrix multiplication</a>. You need the idea of a matrix as a grid of numbers with a $(m, n)$ shape and $(\text{row}, \text{col})$ indexing.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-03/lesson-01">09 · Matrices, shapes, and indexing</a> and <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>. You need the idea of a matrix as a grid of numbers with a $(m, n)$ shape and $(\text{row}, \text{col})$ indexing.</p>
 <p><strong>You will learn:</strong> the "ladder" from a single number up to an arbitrary N-dimensional tensor, and four words used precisely on every rung — <em>shape</em>, <em>dimension/rank</em>, <em>axis</em>, and <em>size</em>. You will index down the ladder ($A[i]$, $A[i,j]$, $A[i,j,k]$) and see how a tensor is stored as one flat 1-D array plus a shape and strides.</p>
 <p><strong>Why this matters for ML:</strong> every quantity in GPT-2 — inputs, weights, activations, gradients — is a tensor. If you can read a shape like $(2,3,4)$ and know exactly how many numbers it holds and how to reach any one of them, the rest of the course (attention, backprop, optimizers) is bookkeeping you can follow.</p>
 </div>
@@ -248,4 +248,4 @@ Size is the product of the shape entries, and the product of an empty list of fa
 
 You can now read any shape, count its elements, index into it, and picture how it sits in memory. The next lesson puts this to work on the single most important shape in this whole course — the $(B, T, C)$ activation that flows through every GPT layer — and the reshape, view, transpose, permute, and broadcast operations that Transformer code uses on it constantly.
 
-Continue to [13 · (B, T, C), reshape, view, permute, broadcast](lesson-02.md).
+Continue to [13 · (B, T, C), reshape, view, permute, broadcast](lessons/module-04/lesson-02.md).

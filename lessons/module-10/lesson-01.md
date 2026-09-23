@@ -1,7 +1,7 @@
 # 29 · Probability and statistics for ML
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> logarithms and exponentials from <a href="../module-01/lesson-03.md">03 · Powers, roots, exponentials, logarithms</a>, summation notation from <a href="../module-01/lesson-04.md">04 · Summation, products, inequalities, rates</a>, and the cross-entropy / softmax stack from <a href="../module-08/lesson-02.md">24 · Loss functions</a>. Gradient descent from <a href="../module-09/lesson-01.md">26 · Gradient descent</a> is helpful for the "why minimize NLL" part.</p>
+<p><strong>Prerequisites:</strong> logarithms and exponentials from <a href="#/lessons/module-01/lesson-03">03 · Powers, roots, exponentials, logarithms</a>, summation notation from <a href="#/lessons/module-01/lesson-04">04 · Summation, products, inequalities, rates</a>, and the cross-entropy / softmax stack from <a href="#/lessons/module-08/lesson-02">24 · Loss functions</a>. Gradient descent from <a href="#/lessons/module-09/lesson-01">26 · Gradient descent</a> is helpful for the "why minimize NLL" part.</p>
 <p><strong>You will learn:</strong> probability as numbers in $[0,1]$ that sum to $1$; random variables and distributions (Bernoulli, categorical, a word on Gaussian); expectation, variance, standard deviation, and covariance; conditional probability and Bayes' theorem; and the information-theory quartet that <em>is</em> the language-model objective — entropy, cross-entropy, KL divergence, and maximum likelihood / negative log likelihood.</p>
 <p><strong>Why this matters for ML:</strong> a GPT-2 model does exactly one thing at each position — it outputs a probability distribution over the vocabulary for the next token. Training makes the real next tokens as probable as possible. That single sentence is maximum likelihood, and it is identical to minimizing cross-entropy, which is identical to minimizing negative log likelihood. This lesson is the probability behind the loss you already met.</p>
 </div>
@@ -42,7 +42,7 @@ $$
 - $p$ — the success probability, a single number in $[0,1]$.
 - The two probabilities sum to $1$ automatically. A biased coin with $p = 0.7$ is Bernoulli.
 
-This is the distribution behind **binary** classification (spam / not-spam), and it pairs with the binary cross-entropy loss from [lesson 24](../module-08/lesson-02.md).
+This is the distribution behind **binary** classification (spam / not-spam), and it pairs with the binary cross-entropy loss from [lesson 24](lessons/module-08/lesson-02.md).
 
 ### 3.2 Categorical — one draw from $V$ outcomes
 
@@ -334,7 +334,7 @@ $$
 H(p, q) = -\sum_i p_i \log q_i = -\log q_c,
 $$
 
-where $c$ is the true next token. That is **exactly** the cross-entropy loss from [lesson 24](../module-08/lesson-02.md) — $-\log$ of the probability the model assigned to the correct token. Because $p$ is one-hot, its entropy $H(p) = 0$, so here cross-entropy *equals* KL divergence: minimizing the loss is directly driving the model's distribution toward the truth.
+where $c$ is the true next token. That is **exactly** the cross-entropy loss from [lesson 24](lessons/module-08/lesson-02.md) — $-\log$ of the probability the model assigned to the correct token. Because $p$ is one-hot, its entropy $H(p) = 0$, so here cross-entropy *equals* KL divergence: minimizing the loss is directly driving the model's distribution toward the truth.
 
 ### 10.5 In PyTorch
 
@@ -356,7 +356,7 @@ print(F.kl_div(q.log(), p, reduction='sum'))   # tensor(0.2231)
 
 ### 10.6 Under the hood
 
-`F.cross_entropy` you already know fuses log-softmax with the one-hot selection $-\log q_c$. It never builds the one-hot $p$ vector — it just indexes $\log q$ at the target class, because every other term of $-\sum_i p_i \log q_i$ is zero. `F.kl_div` similarly works in log-space to stay stable. The reason all of this lives in log-space is the same numerical-stability story as [lesson 24](../module-08/lesson-02.md): logs turn the fragile product of probabilities into a safe sum.
+`F.cross_entropy` you already know fuses log-softmax with the one-hot selection $-\log q_c$. It never builds the one-hot $p$ vector — it just indexes $\log q$ at the target class, because every other term of $-\sum_i p_i \log q_i$ is zero. `F.kl_div` similarly works in log-space to stay stable. The reason all of this lives in log-space is the same numerical-stability story as [lesson 24](lessons/module-08/lesson-02.md): logs turn the fragile product of probabilities into a safe sum.
 
 ## 11. Maximum likelihood and negative log likelihood
 
@@ -440,4 +440,4 @@ Because $H(p, q) = H(p) + D_{\text{KL}}(p \,\|\, q)$, and $H(p)$ (the entropy of
 
 You now know that a language model emits a categorical distribution over the vocabulary and that training minimizes negative log likelihood, i.e. cross-entropy, i.e. KL to the truth. The next lesson opens up the mechanism that produces that distribution: how a hidden vector becomes logits through the LM head's weight matrix, how softmax normalizes them, and how temperature reshapes the result for sampling.
 
-Continue to [30 · Softmax and language-modeling math](lesson-02.md).
+Continue to [30 · Softmax and language-modeling math](lessons/module-10/lesson-02.md).

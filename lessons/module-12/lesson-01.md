@@ -1,7 +1,7 @@
 # 35 · Numerical issues and stability
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> exponentials and logarithms from <a href="../module-01/lesson-03.md">03 · Powers, roots, exponentials, logarithms</a>; softmax from <a href="../module-08/lesson-02.md">24 · Loss functions</a>; normalization from <a href="../module-11/lesson-03.md">34 · Normalization</a>; Adam and AdamW from <a href="../module-09/lesson-02.md">27 · SGD, momentum, RMSProp, Adam, AdamW</a>; and residual connections from <a href="../module-11/lesson-02.md">33 · The Transformer block</a>.</p>
+<p><strong>Prerequisites:</strong> exponentials and logarithms from <a href="#/lessons/module-01/lesson-03">03 · Powers, roots, exponentials, logarithms</a>; softmax from <a href="#/lessons/module-08/lesson-02">24 · Loss functions</a>; normalization from <a href="#/lessons/module-11/lesson-03">34 · Normalization</a>; Adam and AdamW from <a href="#/lessons/module-09/lesson-02">27 · SGD, momentum, RMSProp, Adam, AdamW</a>; and residual connections from <a href="#/lessons/module-11/lesson-02">33 · The Transformer block</a>.</p>
 <p><strong>You will learn:</strong> how real numbers are actually stored (float32, float16, bfloat16 — bits, range, precision), where the arithmetic breaks (rounding, overflow, underflow, <code>NaN</code>, infinity), and the exact tricks production code uses to stay stable — the log-sum-exp identity, stable softmax, epsilon terms, and gradient clipping — with worked numbers for each.</p>
 <p><strong>Why this matters for ML:</strong> a single <code>NaN</code> anywhere in a GPT-2 forward pass poisons the whole model and destroys a training run. Every stabilizing trick in the Transformer — subtracting the max before softmax, the $\varepsilon$ inside LayerNorm, clipping the gradient — exists to keep finite-precision arithmetic from blowing up. This lesson is where the mathematics meets the hardware.</p>
 </div>
@@ -121,7 +121,7 @@ A clean, finite answer where the naive route gave `inf`.
 
 ## 8. Fix 2 — stable softmax (subtract the max)
 
-Softmax (from [lesson 24](../module-08/lesson-02.md)) is $\text{softmax}(x)_i = \dfrac{e^{x_i}}{\sum_j e^{x_j}}$. The same overflow lurks in the exponentials. The fix uses a property softmax already has: **shift invariance**. Subtract any constant $c$ from every logit and the output is unchanged, because the constant factors out of numerator and denominator:
+Softmax (from [lesson 24](lessons/module-08/lesson-02.md)) is $\text{softmax}(x)_i = \dfrac{e^{x_i}}{\sum_j e^{x_j}}$. The same overflow lurks in the exponentials. The fix uses a property softmax already has: **shift invariance**. Subtract any constant $c$ from every logit and the output is unchanged, because the constant factors out of numerator and denominator:
 
 $$
 \frac{e^{x_i - c}}{\sum_j e^{x_j - c}} = \frac{e^{-c}e^{x_i}}{e^{-c}\sum_j e^{x_j}} = \frac{e^{x_i}}{\sum_j e^{x_j}}.
@@ -164,8 +164,8 @@ print(torch.softmax(x, dim=0))     # tensor([0.0900, 0.2447, 0.6652])  -- torch 
 
 The most common stabilizer in a Transformer is a tiny constant $\varepsilon$ (epsilon, typically $10^{-5}$ to $10^{-8}$) added inside a square root or a logarithm so the argument can never be exactly $0$. Three you have already met or will meet in real GPT-2 code:
 
-- **LayerNorm / RMSNorm** ([lesson 34](../module-11/lesson-03.md)) divide by a standard deviation: $\hat{x} = \dfrac{x - \mu}{\sqrt{\sigma^2 + \varepsilon}}$. If a feature vector happened to be constant, $\sigma^2 = 0$ and you would divide by zero; the $+\varepsilon$ (here $\approx 10^{-5}$) makes the denominator strictly positive.
-- **Adam / AdamW** ([lesson 27](../module-09/lesson-02.md)) divide the update by $\sqrt{\hat{v}} + \varepsilon$, where $\hat{v}$ is the second-moment estimate. Early in training $\hat{v}$ can be essentially $0$; the $\varepsilon$ (default $10^{-8}$) keeps the step finite.
+- **LayerNorm / RMSNorm** ([lesson 34](lessons/module-11/lesson-03.md)) divide by a standard deviation: $\hat{x} = \dfrac{x - \mu}{\sqrt{\sigma^2 + \varepsilon}}$. If a feature vector happened to be constant, $\sigma^2 = 0$ and you would divide by zero; the $+\varepsilon$ (here $\approx 10^{-5}$) makes the denominator strictly positive.
+- **Adam / AdamW** ([lesson 27](lessons/module-09/lesson-02.md)) divide the update by $\sqrt{\hat{v}} + \varepsilon$, where $\hat{v}$ is the second-moment estimate. Early in training $\hat{v}$ can be essentially $0$; the $\varepsilon$ (default $10^{-8}$) keeps the step finite.
 - **Log-probabilities** sometimes compute $\log(p + \varepsilon)$ so that a probability that underflowed to $0$ gives a large-but-finite negative number instead of $-\infty$.
 
 The rule of thumb: whenever code divides by a quantity that *could* be zero, or takes the log of one, there is almost always an $\varepsilon$ nearby, and it is there for exactly this reason.
@@ -174,7 +174,7 @@ The rule of thumb: whenever code divides by a quantity that *could* be zero, or 
 
 **Gradient explosion** is a numerical failure mode of the *backward* pass. In a deep network the chain rule multiplies many local derivatives together; if their product grows, the gradient's magnitude can blow up to `inf` or `NaN`, and a single huge optimizer step throws the weights into nonsense. You see it as a loss that suddenly spikes to `inf`/`NaN` after training fine for a while.
 
-The standard fix is **gradient clipping by norm**. Treat all the parameter gradients as one long vector $\mathbf{g}$, measure its Euclidean norm $\|\mathbf{g}\|$ (the "total gradient size," from [lesson 08](../module-02/lesson-03.md)), and if it exceeds a chosen threshold $\tau$, scale the *whole* gradient down so its norm equals $\tau$ — preserving its *direction* but capping its *length*:
+The standard fix is **gradient clipping by norm**. Treat all the parameter gradients as one long vector $\mathbf{g}$, measure its Euclidean norm $\|\mathbf{g}\|$ (the "total gradient size," from [lesson 08](lessons/module-02/lesson-03.md)), and if it exceeds a chosen threshold $\tau$, scale the *whole* gradient down so its norm equals $\tau$ — preserving its *direction* but capping its *length*:
 
 $$
 \mathbf{g} \leftarrow \mathbf{g}\cdot\frac{\tau}{\|\mathbf{g}\|} \quad\text{if } \|\mathbf{g}\| > \tau, \qquad \text{otherwise leave } \mathbf{g} \text{ unchanged.}
@@ -198,8 +198,8 @@ The opposite failure: when the multiplied local derivatives are each smaller tha
 
 The Transformer's three main defenses, all met earlier in the course:
 
-- **Residual connections** ([lesson 33](../module-11/lesson-02.md)): a block computes $x + f(x)$, so the backward pass has a path that multiplies by $1$ (the derivative of the $x$ term), letting gradient flow to early layers undiminished.
-- **Normalization** (LayerNorm/RMSNorm, [lesson 34](../module-11/lesson-03.md)): keeps activations at a controlled scale, so local derivatives stay near $1$ rather than drifting toward $0$ or blowing up.
+- **Residual connections** ([lesson 33](lessons/module-11/lesson-02.md)): a block computes $x + f(x)$, so the backward pass has a path that multiplies by $1$ (the derivative of the $x$ term), letting gradient flow to early layers undiminished.
+- **Normalization** (LayerNorm/RMSNorm, [lesson 34](lessons/module-11/lesson-03.md)): keeps activations at a controlled scale, so local derivatives stay near $1$ rather than drifting toward $0$ or blowing up.
 - **Careful weight initialization**: scaling initial weights so that signal variance is preserved layer to layer, keeping the derivative products near $1$ from the very first step.
 
 Explosion and vanishing are two ends of one phenomenon — the product of many local derivatives is unstable unless the architecture is built to hold it near $1$ — which is exactly what residuals and normalization do.
@@ -265,4 +265,4 @@ $\|\mathbf{g}\|=\sqrt{36+64}=10>1$, so scale by $\tfrac{1}{10}$: $\mathbf{g}\lef
 
 Numerical stability keeps the arithmetic finite; the next lesson explains the machinery that computes the gradients in the first place — **automatic differentiation**, the exact algorithm behind `loss.backward()`, and why neural networks use reverse mode.
 
-Continue to [36 · Automatic differentiation](lesson-02.md).
+Continue to [36 · Automatic differentiation](lessons/module-12/lesson-02.md).

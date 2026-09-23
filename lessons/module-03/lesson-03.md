@@ -1,7 +1,7 @@
 # 11 · Transpose, identity, inverse, rank
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">09 · Matrices, shapes, and indexing</a> and <a href="lesson-02.md">10 · Matrix multiplication</a>. You need the (row, col) index order and the shape rule for matrix products.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-03/lesson-01">09 · Matrices, shapes, and indexing</a> and <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>. You need the (row, col) index order and the shape rule for matrix products.</p>
 <p><strong>You will learn:</strong> the transpose (flipping rows and columns), the identity matrix (the "1" of matrices), the inverse (the "reciprocal" of a matrix) with a fully worked $2\times2$ example, and rank (how many real dimensions a matrix keeps). You will also see the geometric picture of a matrix as a transformation of space.</p>
 <p><strong>Why this matters for ML:</strong> transpose lines up shapes for the matrix products in attention and backprop. The identity is the reference point for the inverse and for residual connections. Rank is the entire idea behind LoRA fine-tuning. The geometric view is how you will reason about what a weight matrix actually does.</p>
 </div>
@@ -282,4 +282,4 @@ Because it approximates the fine-tuning update to a large weight matrix as a pro
 
 You now command the core vocabulary of linear algebra: shapes and indexing, the matrix product, and transpose/identity/inverse/rank. The next module generalizes matrices to **tensors** of any number of dimensions — the $(B, T, C)$ and $(B, T, n_h, d_h)$ objects that fill real Transformer code — and shows why that code constantly reshapes them.
 
-Continue to [12 · From scalar to N-D tensor](../module-04/lesson-01.md).
+Continue to [12 · From scalar to N-D tensor](lessons/module-04/lesson-01.md).

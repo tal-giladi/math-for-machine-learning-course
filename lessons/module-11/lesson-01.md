@@ -1,7 +1,7 @@
 # 32 · Attention mathematics
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> matrix multiplication and transpose from <a href="../module-03/lesson-01.md">module 3</a>; the $(B, T, C)$ shape and the reshape/transpose/permute machinery from <a href="../module-04/lesson-02.md">13 · (B, T, C), reshape, view, permute, broadcast</a>; softmax as a map from scores to a probability distribution from <a href="../module-10/lesson-01.md">the probability module</a>; the dot product from <a href="../module-02/lesson-02.md">module 2</a>.</p>
+<p><strong>Prerequisites:</strong> matrix multiplication and transpose from <a href="#/lessons/module-03/lesson-01">module 3</a>; the $(B, T, C)$ shape and the reshape/transpose/permute machinery from <a href="#/lessons/module-04/lesson-02">13 · (B, T, C), reshape, view, permute, broadcast</a>; softmax as a map from scores to a probability distribution from <a href="#/lessons/module-10/lesson-01">the probability module</a>; the dot product from <a href="#/lessons/module-02/lesson-02">module 2</a>.</p>
 <p><strong>You will learn:</strong> what queries, keys, and values are; how a single attention score is a dot product measuring relatedness; why we scale by $1/\sqrt{d_h}$; how a causal mask forbids looking at the future; how softmax turns scores into weights and the output becomes a weighted average of values — all worked by hand on a $T=3$, $d_h=2$ example with exact numbers. Then how <strong>multi-head</strong> attention splits the channel dimension, runs several attentions in parallel, and concatenates the results.</p>
 <p><strong>Why this matters for ML:</strong> attention is the one operation that makes a Transformer a Transformer. It is how each token gathers information from the other tokens. Every GPT-2 layer is attention plus a small feed-forward network, so once you can compute attention by hand and read its PyTorch form line by line, the rest of the architecture is assembly.</p>
 </div>
@@ -22,7 +22,7 @@ A position compares its query to every key to decide *how much* to listen to eac
 
 ## 2. The setup: three positions, head dimension two
 
-We will use a sequence of $T = 3$ positions and a head dimension of $d_h = 2$ (two numbers per query/key/value vector). In real code $\mathbf{q}$, $\mathbf{k}$, $\mathbf{v}$ are produced by multiplying the token vectors by learned weight matrices (that is the QKV projection of [the next lesson](lesson-02.md)); here we skip that and simply hand you the resulting matrices, so we can focus on attention itself.
+We will use a sequence of $T = 3$ positions and a head dimension of $d_h = 2$ (two numbers per query/key/value vector). In real code $\mathbf{q}$, $\mathbf{k}$, $\mathbf{v}$ are produced by multiplying the token vectors by learned weight matrices (that is the QKV projection of [the next lesson](lessons/module-11/lesson-02.md)); here we skip that and simply hand you the resulting matrices, so we can focus on attention itself.
 
 $$
 Q = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix}, \qquad
@@ -74,7 +74,7 @@ $$
 \frac{S}{\sqrt 2} = \begin{bmatrix} 0.7071 & 0.7071 & 0 \\ 0 & 0.7071 & 0.7071 \\ 0.7071 & 1.4142 & 0.7071 \end{bmatrix}.
 $$
 
-**Why divide at all?** A dot product of two $d_h$-dimensional vectors is a sum of $d_h$ products. As $d_h$ grows, that sum tends to grow too (more terms piled up), so raw scores in a real model with $d_h = 64$ can be large. Softmax applied to large-magnitude inputs **saturates**: it puts almost all the weight on the single biggest score and near-zero on the rest, which behaves like a hard pick rather than a soft blend. A near-one-hot softmax also has a nearly flat gradient, so learning stalls. Dividing by $\sqrt{d_h}$ keeps the scores at a moderate size regardless of $d_h$, so softmax stays soft and its gradient stays healthy. We will treat softmax saturation and numerical stability carefully in [module 12](../module-12/lesson-01.md); for now, read the scale as "keep the numbers going into softmax reasonable."
+**Why divide at all?** A dot product of two $d_h$-dimensional vectors is a sum of $d_h$ products. As $d_h$ grows, that sum tends to grow too (more terms piled up), so raw scores in a real model with $d_h = 64$ can be large. Softmax applied to large-magnitude inputs **saturates**: it puts almost all the weight on the single biggest score and near-zero on the rest, which behaves like a hard pick rather than a soft blend. A near-one-hot softmax also has a nearly flat gradient, so learning stalls. Dividing by $\sqrt{d_h}$ keeps the scores at a moderate size regardless of $d_h$, so softmax stays soft and its gradient stays healthy. We will treat softmax saturation and numerical stability carefully in [module 12](lessons/module-12/lesson-01.md); for now, read the scale as "keep the numbers going into softmax reasonable."
 
 ## 5. Step three — the causal mask: no peeking at the future
 
@@ -192,7 +192,7 @@ $$
 (B, T, C) \;\xrightarrow{\text{reshape}}\; (B, T, n_h, d_h) \;\xrightarrow{\text{transpose}}\; (B, n_h, T, d_h).
 $$
 
-The reshape re-groups the $C$ channels into $n_h \times d_h$ without moving data; the transpose swaps the $T$ and $n_h$ axes so the head axis sits next to the batch axis. This is exactly the `view(B, T, n_h, d_h).transpose(1, 2)` pattern you learned in [module 4, lesson 2](../module-04/lesson-02.md). After it, the last two axes of the tensor are $(T, d_h)$ — precisely the little $Q, K, V$ matrices attention operates on — and there are $B \cdot n_h$ of them, one per (sequence, head).
+The reshape re-groups the $C$ channels into $n_h \times d_h$ without moving data; the transpose swaps the $T$ and $n_h$ axes so the head axis sits next to the batch axis. This is exactly the `view(B, T, n_h, d_h).transpose(1, 2)` pattern you learned in [module 4, lesson 2](lessons/module-04/lesson-02.md). After it, the last two axes of the tensor are $(T, d_h)$ — precisely the little $Q, K, V$ matrices attention operates on — and there are $B \cdot n_h$ of them, one per (sequence, head).
 
 Each head then runs the *entire* section 3–7 computation on its own $(T, d_h)$ slices, completely independently: its own scores, its own scaled-and-masked matrix, its own softmax, its own weighted sum of *its* values. Because the heads sit on separate channel slices and on a separate axis, all $n_h$ of them compute at once as a batched matrix multiply — no Python loop over heads.
 
@@ -295,9 +295,9 @@ Three things are worth making explicit.
 
 **The mask is added, not multiplied, before softmax.** Setting scores to $-\infty$ and letting $\exp(-\infty) = 0$ removes future positions cleanly inside softmax, and it keeps the surviving weights a correct probability distribution (they still sum to $1$). This is exactly why the mask lives *before* softmax rather than being applied to the weights afterward — zeroing weights after the fact would break the normalization.
 
-**Materializing the $T \times T$ matrix is the expensive part.** The scores and weights are each $(B, n_h, T, T)$: their size grows with $T^2$. For long sequences that matrix dominates both memory and time. Production kernels called **flash attention** compute the same output *without* ever storing the full $T \times T$ matrix — they stream over it in tiles and accumulate the weighted sum on the fly. The mathematics is identical to what you computed by hand; only the bookkeeping changes. We return to this in [module 12](../module-12/lesson-01.md).
+**Materializing the $T \times T$ matrix is the expensive part.** The scores and weights are each $(B, n_h, T, T)$: their size grows with $T^2$. For long sequences that matrix dominates both memory and time. Production kernels called **flash attention** compute the same output *without* ever storing the full $T \times T$ matrix — they stream over it in tiles and accumulate the weighted sum on the fly. The mathematics is identical to what you computed by hand; only the bookkeeping changes. We return to this in [module 12](lessons/module-12/lesson-01.md).
 
-The gradients flow back through exactly these operations — the matmuls, the softmax, the masked fills — using the vector–Jacobian products from [module 7](../module-07/lesson-01.md). Softmax has a known Jacobian (module 6), and autograd already carries backward rules for `@`, `softmax`, and `masked_fill`, so `loss.backward()` differentiates the whole attention block with no extra work from you.
+The gradients flow back through exactly these operations — the matmuls, the softmax, the masked fills — using the vector–Jacobian products from [module 7](lessons/module-07/lesson-01.md). Softmax has a known Jacobian (module 6), and autograd already carries backward rules for `@`, `softmax`, and `masked_fill`, so `loss.backward()` differentiates the whole attention block with no extra work from you.
 
 ## Check yourself
 
@@ -329,4 +329,4 @@ $d_h = C / n_h = 768 / 12 = 64$. The scores tensor is $(B, n_h, T, T) = (B, 12, 
 
 You can now compute attention by hand and read its three-line PyTorch core, and you understand how multiple heads split the channels to attend in parallel. But attention never stands alone: in a real GPT it is wrapped in normalization, a residual connection, and a feed-forward network. The next lesson assembles exactly that — the Transformer block — around the attention you just built.
 
-Continue to [33 · The Transformer block](lesson-02.md).
+Continue to [33 · The Transformer block](lessons/module-11/lesson-02.md).

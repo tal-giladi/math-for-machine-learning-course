@@ -1,7 +1,7 @@
 # 27 · SGD, momentum, RMSProp, Adam, AdamW
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">26 · Gradient descent</a> — you must be comfortable with the update $\theta \leftarrow \theta - \eta\,\nabla L$, the learning rate $\eta$, and the PyTorch loop <code>zero_grad</code> / <code>backward</code> / <code>step</code>. Vectors and element-wise operations from <a href="../module-02/lesson-01.md">the vectors module</a>.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-09/lesson-01">26 · Gradient descent</a> — you must be comfortable with the update $\theta \leftarrow \theta - \eta\,\nabla L$, the learning rate $\eta$, and the PyTorch loop <code>zero_grad</code> / <code>backward</code> / <code>step</code>. Vectors and element-wise operations from <a href="#/lessons/module-02/lesson-01">the vectors module</a>.</p>
 <p><strong>You will learn:</strong> why plain gradient descent struggles, and five optimizers that fix it — SGD, momentum, Nesterov momentum, RMSProp, Adam, and AdamW. For each you get the problem it solves, the equations with every symbol named, the internal <strong>state</strong> it stores, a tiny hand-worked numeric example, and the PyTorch call. Special depth on Adam's first/second moments and bias correction, and on how AdamW's <strong>decoupled</strong> weight decay differs from Adam-with-L2.</p>
 <p><strong>Why this matters for ML:</strong> GPT-2 and essentially every modern Transformer is trained with AdamW. Understanding the moving averages it keeps, and why the weight decay is decoupled, is the difference between copying <code>torch.optim.AdamW(...)</code> as a magic incantation and knowing exactly what happens to every weight on every step.</p>
 </div>
@@ -12,13 +12,13 @@ Plain gradient descent, $\theta \leftarrow \theta - \eta\,\nabla L$, has three w
 
 1. **It has no memory.** Each step uses only the current gradient. In a long, gently-sloping valley it inches forward; on a steep-but-narrow ravine it zig-zags across the walls instead of running down the floor.
 2. **One learning rate for all parameters.** A single $\eta$ must serve every weight, even though some weights sit in steep parts of the landscape and others in flat parts. Too big for one is too small for another.
-3. **Noisy mini-batch gradients.** With mini-batch gradients (from [lesson 26](lesson-01.md)) the direction jitters step to step; raw descent follows every jitter.
+3. **Noisy mini-batch gradients.** With mini-batch gradients (from [lesson 26](lessons/module-09/lesson-01.md)) the direction jitters step to step; raw descent follows every jitter.
 
 The optimizers below are increasingly clever answers. Each keeps a little extra **state** — running averages carried from step to step — to smooth the direction, adapt the step size per parameter, or both. Throughout, $g$ denotes the current gradient $\nabla L(\theta)$ (element-wise, one number per parameter), and $t = 1, 2, 3, \dots$ is the step counter.
 
 ## 1. SGD (plain) — the baseline, no state
 
-This is exactly [lesson 26](lesson-01.md), restated so the family is complete:
+This is exactly [lesson 26](lessons/module-09/lesson-01.md), restated so the family is complete:
 
 $$
 \theta \leftarrow \theta - \eta\,g.
@@ -176,7 +176,7 @@ print(opt.state[w])      # {'step': ..., 'exp_avg': m, 'exp_avg_sq': v}
 
 ### 5.7 What PyTorch is doing under the hood
 
-Adam keeps **two extra tensors per parameter**: `exp_avg` (the first moment $m$) and `exp_avg_sq` (the second moment $v$), plus a scalar `step` count $t$ per parameter for the bias correction. These live in `opt.state[p]`, *not* in `p` itself — the parameter tensor still holds only its value and `.grad`. Memory cost: Adam roughly *triples* the memory of the parameters (the weights, plus $m$, plus $v$). For a 124M-parameter GPT-2 that is a real cost, and it is exactly what `opt.state` stores. On each `opt.step()`, for every parameter with a gradient, PyTorch updates $m$ and $v$ in place, computes $\hat m$ and $\hat v$ from the current `step`, and applies the update under `torch.no_grad()` — the same hand-update you wrote in [lesson 26](lesson-01.md), just with the moment bookkeeping wrapped around it.
+Adam keeps **two extra tensors per parameter**: `exp_avg` (the first moment $m$) and `exp_avg_sq` (the second moment $v$), plus a scalar `step` count $t$ per parameter for the bias correction. These live in `opt.state[p]`, *not* in `p` itself — the parameter tensor still holds only its value and `.grad`. Memory cost: Adam roughly *triples* the memory of the parameters (the weights, plus $m$, plus $v$). For a 124M-parameter GPT-2 that is a real cost, and it is exactly what `opt.state` stores. On each `opt.step()`, for every parameter with a gradient, PyTorch updates $m$ and $v$ in place, computes $\hat m$ and $\hat v$ from the current `step`, and applies the update under `torch.no_grad()` — the same hand-update you wrote in [lesson 26](lessons/module-09/lesson-01.md), just with the moment bookkeeping wrapped around it.
 
 <div class="callout key"><p>Adam stores, per parameter, the first moment $m$ (smoothed gradient = momentum) and the second moment $v$ (smoothed squared gradient = adaptive scale). Bias correction ($/(1-\beta^t)$) fixes the zero-start of those averages so early steps are not artificially tiny. At $t=1$ the effective step size is about $\eta$.</p></div>
 
@@ -283,4 +283,4 @@ About $\eta$ in magnitude. Because $\hat m \approx g$ and $\sqrt{\hat v} \approx
 
 You can now train with the optimizer that actually trains GPT-2. Every optimizer so far treats each weight as an independent number in a flat bag — even Adam scales each entry on its own. The next lesson introduces Muon, which does something genuinely different: it looks at a weight *matrix* as a geometric object and reshapes the whole update using its singular structure.
 
-Continue to [28 · Muon](lesson-03.md).
+Continue to [28 · Muon](lessons/module-09/lesson-03.md).

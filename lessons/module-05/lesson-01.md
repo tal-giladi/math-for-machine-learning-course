@@ -1,7 +1,7 @@
 # 14 · Composition and computational graphs
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> Functions and the notation $f(x)$ (<a href="../module-01/lesson-04.md">04 · Functions and equations</a>), vectors as lists of numbers (<a href="../module-02/lesson-01.md">06 · What a vector is</a>), matrix and matrix–vector multiplication (<a href="../module-03/lesson-02.md">10 · Matrix multiplication</a>), and tensors and shapes (<a href="../module-04/lesson-01.md">12 · Tensors and shapes</a>).</p>
+<p><strong>Prerequisites:</strong> Functions and the notation $f(x)$ (<a href="#/lessons/module-01/lesson-04">04 · Functions and equations</a>), vectors as lists of numbers (<a href="#/lessons/module-02/lesson-01">06 · What a vector is</a>), matrix and matrix–vector multiplication (<a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a>), and tensors and shapes (<a href="#/lessons/module-04/lesson-01">12 · Tensors and shapes</a>).</p>
 <p><strong>You will learn:</strong> how functions take one input, many inputs, or produce whole vectors; what it means to <em>compose</em> functions as $f(g(x))$ and evaluate them inside-out; why composition order matters; and how to draw any composition as a <em>computational graph</em> whose nodes are operations and whose edges carry data.</p>
 <p><strong>Why this matters for ML:</strong> a neural network is nothing but a big composition of functions. The <em>forward pass</em> that produces a prediction is just evaluating that composition left to right, and the stored intermediate values are exactly what backpropagation will reuse. This lesson is the bridge from algebra to training.</p>
 </div>
@@ -136,7 +136,7 @@ $$
 f \circ g \ne g \circ f.
 $$
 
-This should feel familiar: in <a href="../module-03/lesson-02.md">10 · Matrix multiplication</a> you saw that $\mathbf{A}\mathbf{B} \ne \mathbf{B}\mathbf{A}$. That is not a coincidence. Applying a matrix is a function, and stacking two linear layers *is* composing their functions — so the non-commutativity of matrix products is the non-commutativity of function composition wearing different clothes. The parentheses and the ordering are load-bearing; get them wrong and you have built a different network.
+This should feel familiar: in <a href="#/lessons/module-03/lesson-02">10 · Matrix multiplication</a> you saw that $\mathbf{A}\mathbf{B} \ne \mathbf{B}\mathbf{A}$. That is not a coincidence. Applying a matrix is a function, and stacking two linear layers *is* composing their functions — so the non-commutativity of matrix products is the non-commutativity of function composition wearing different clothes. The parentheses and the ordering are load-bearing; get them wrong and you have built a different network.
 
 ## 3. Computational graphs
 
@@ -263,4 +263,4 @@ $\mathbf{W}$ has shape $(m, n)$ so that $\mathbf{W}\mathbf{x}$ turns a length-$n
 
 You now have the one structural idea the rest of the course leans on: a network is a composition, its forward pass evaluates that composition and stores every intermediate, and that stored graph is what training reads backward. Next you meet the tool that reads it backward — the derivative, and then the chain rule that turns a graph into gradients.
 
-Continue to <a href="../module-06/lesson-01.md">15 · Limits, slope, and the derivative</a>.
+Continue to <a href="#/lessons/module-06/lesson-01">15 · Limits, slope, and the derivative</a>.

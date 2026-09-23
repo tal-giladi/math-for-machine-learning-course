@@ -1,7 +1,7 @@
 # 13 · (B, T, C), reshape, view, permute, broadcast
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">12 · From scalar to N-D tensor</a>. You need shape, dimension/rank, axis, size, indexing, and the flat-storage + strides picture from that lesson. A reminder of matrix shapes from <a href="../module-03/lesson-01.md">module 3</a> helps too.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-04/lesson-01">12 · From scalar to N-D tensor</a>. You need shape, dimension/rank, axis, size, indexing, and the flat-storage + strides picture from that lesson. A reminder of matrix shapes from <a href="#/lessons/module-03/lesson-01">module 3</a> helps too.</p>
 <p><strong>You will learn:</strong> the canonical GPT activation shape $(B, T, C)$ and what one element means; how and why attention splits $C$ into $(n_h, d_h)$; and the six shape operations Transformer code lives on — <em>reshape</em>, <em>view</em>, <em>transpose</em>, <em>permute</em>, <em>broadcasting</em>, and <em>slicing</em> — each with a tiny worked example and its precise rule.</p>
 <p><strong>Why this matters for ML:</strong> this is the most important lesson in the module. Real Transformer code reshapes tensors on nearly every line, and if you cannot follow the shapes you cannot read attention. Everything here is reused directly in the attention lessons of module 9.</p>
 </div>
@@ -243,4 +243,4 @@ $(2,4,6)$ and $(4,6)$: align from the right — $6$ vs $6$ ✓, $4$ vs $4$ ✓, 
 
 You can now read $(B, T, C)$, split it into heads, and follow every reshape, transpose, permute, broadcast, and slice that Transformer code throws at a tensor. That is the shape machinery attention runs on. The next module returns to functions and composition — how these tensor operations chain together into the layers of a network — which is the bridge to the calculus of training.
 
-Continue to [Module 5 · Functions and composition](../module-05/lesson-01.md).
+Continue to [Module 5 · Functions and composition](lessons/module-05/lesson-01.md).

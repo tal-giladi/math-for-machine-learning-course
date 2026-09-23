@@ -208,4 +208,4 @@ $5 \cdot 3 - 2 = 15 - 2 = 13$.
 
 You now have numbers, variables, expressions, and equations — the raw vocabulary. The single most important structure built from them is the **function**, the object that turns inputs into outputs and that machine learning is entirely about learning. That is next.
 
-[02 · Functions and the meaning of f(x) →](lesson-02.md)
+[02 · Functions and the meaning of f(x) →](lessons/module-01/lesson-02.md)

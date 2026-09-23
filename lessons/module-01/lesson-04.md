@@ -1,7 +1,7 @@
 # 04 · Summation, products, inequalities, rates
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">Lesson 01</a> (variables, expressions), <a href="lesson-02.md">Lesson 02</a> (functions), <a href="lesson-03.md">Lesson 03</a> (powers).</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-01/lesson-01">Lesson 01</a> (variables, expressions), <a href="#/lessons/module-01/lesson-02">Lesson 02</a> (functions), <a href="#/lessons/module-01/lesson-03">Lesson 03</a> (powers).</p>
 <p><strong>You will learn:</strong> Summation notation $\sum$ read index by index, product notation $\prod$, absolute value $|x|$, the inequality symbols and intervals, fractions and ratios, and the average rate of change $\frac{\Delta y}{\Delta x}$ — the direct runway to the derivative.</p>
 <p><strong>Why this matters for ML:</strong> A loss is an <em>average over a batch</em>, which is a $\sum$ divided by a count. A likelihood is a <em>product</em> of probabilities, a $\prod$. Distances and errors use absolute value. And the average rate of change is the idea the derivative is built from — the single most important concept in the entire training story.</p>
 </div>
@@ -237,4 +237,4 @@ $y_1 = 2^2 = 4$, $y_2 = 4^2 = 16$. So $\Delta y = 16 - 4 = 12$, $\Delta x = 4 - 
 
 You have now met most of the operator symbols. Before we leave Part 1, we do a guided tour of the more exotic symbols the course will use later — $\partial$, $\nabla$, $\|x\|$, transpose, inverse, and friends — so that when they appear in Module 6 and beyond, they are familiar faces rather than strangers.
 
-[05 · The notation zoo: ∂ ∇ ‖x‖ indices transpose →](lesson-05.md)
+[05 · The notation zoo: ∂ ∇ ‖x‖ indices transpose →](lessons/module-01/lesson-05.md)

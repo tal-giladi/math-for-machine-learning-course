@@ -1,7 +1,7 @@
 # 02 · Functions and the meaning of f(x)
 
 <div class="prereq">
-<p><strong>Prerequisites:</strong> <a href="lesson-01.md">Lesson 01</a> — numbers, variables, expressions, substitution, and evaluation.</p>
+<p><strong>Prerequisites:</strong> <a href="#/lessons/module-01/lesson-01">Lesson 01</a> — numbers, variables, expressions, substitution, and evaluation.</p>
 <p><strong>You will learn:</strong> Exactly what $f$, $x$, and $f(x)$ each mean; what a function is as a mapping from inputs to outputs; domain and range; functions of several inputs like $f(x,y)$; and the precise sense in which "machine learning is learning a function".</p>
 <p><strong>Why this matters for ML:</strong> The one-sentence definition of machine learning is "learning a function from data". A neural network <em>is</em> a function; its parameters <em>are</em> the dials that shape which function it is. Every forward pass is a function evaluation. If you own the idea of a function, the rest of the course is filling in what kind of function and how we learn it.</p>
 </div>
@@ -228,4 +228,4 @@ $x$ (before the semicolon) is the input data, fed in each time. $\theta$ (after 
 
 You can now read $f(x)$ and think of a model as a function of data and dials. Those rules keep using operations like squaring, roots, exponentials, and logarithms — the toolkit that makes loss functions and probabilities work. We build that toolkit next.
 
-[03 · Powers, roots, exponentials, logarithms →](lesson-03.md)
+[03 · Powers, roots, exponentials, logarithms →](lessons/module-01/lesson-03.md)
