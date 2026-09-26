@@ -129,6 +129,8 @@ That matches the eyeball picture from lesson 06: $[2,3]$ and $[4,5]$ both head u
 
 <div class="callout key"><p>Cosine similarity = dot product of the two <em>normalized</em> vectors. It measures direction alone, on a fixed scale from $-1$ to $+1$, no matter how long the original vectors are. That scale-invariance is exactly why it is the default way to compare embeddings.</p></div>
 
+<div class="callout warn"><p><strong>Where is the cosine?</strong> Notice that the calculation never calls $\cos$ and never uses an angle: normalize $\mathbf{x}$, normalize $\mathbf{w}$, multiply matching entries and add. The name is inherited from 2D and 3D, where that number really does equal the cosine of the angle between the two arrows (as the example above shows). For a 768-dimensional embedding there is no angle you can picture, so the name is effectively a definition: the normalized dot product is <em>called</em> "cosine" because it behaves like one — $1$ for the same direction, $0$ for perpendicular, $-1$ for opposite.</p></div>
+
 ## Part D — Projection
 
 ### 1. Intuition
