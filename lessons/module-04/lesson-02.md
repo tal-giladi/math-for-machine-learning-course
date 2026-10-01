@@ -98,6 +98,23 @@ $$
 
 This moves the head axis $n_h$ up next to the batch axis $B$. Now both "independent, parallel" axes ($B$ and $n_h$) sit in front, and the last two axes $(T, d_h)$ form the little matrices attention actually multiplies. Like transpose, permute only reorders strides — no data moves, and the result is generally non-contiguous.
 
+**A tiny numerical example.** Shrink it to $(B, T, n_h, d_h) = (1, 3, 2, 2)$: one sequence, $3$ tokens, $2$ heads of $2$ features, filled with `torch.arange(12)`. Before the permute, each token holds a $2 \times 2$ block — one row per head:
+
+$$
+\text{token } 0 = \begin{bmatrix} 0 & 1 \\ 2 & 3 \end{bmatrix}, \qquad
+\text{token } 1 = \begin{bmatrix} 4 & 5 \\ 6 & 7 \end{bmatrix}, \qquad
+\text{token } 2 = \begin{bmatrix} 8 & 9 \\ 10 & 11 \end{bmatrix}.
+$$
+
+After `permute(0, 2, 1, 3)` the shape is $(1, 2, 3, 2)$, and each *head* holds a $3 \times 2$ matrix — one row per token:
+
+$$
+\text{head } 0 = \begin{bmatrix} 0 & 1 \\ 4 & 5 \\ 8 & 9 \end{bmatrix}, \qquad
+\text{head } 1 = \begin{bmatrix} 2 & 3 \\ 6 & 7 \\ 10 & 11 \end{bmatrix}.
+$$
+
+Head $0$ collected the first row of every token; head $1$ collected the second. No number changed — the rule is just $\text{new}[b, h, t, d] = \text{old}[b, t, h, d]$. For example, $10$ sat at old $[0, 2, 1, 0]$ (token $2$, head $1$) and now sits at new $[0, 1, 2, 0]$ (head $1$, token $2$).
+
 ## 7. Broadcasting — stretching without copying
 
 **The problem:** you often want to combine tensors of *different but compatible* shapes — for example, add one bias vector of length $C$ to every token in a $(B, T, C)$ activation. Broadcasting is the rule that makes this work without you manually replicating the small tensor.

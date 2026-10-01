@@ -52,6 +52,25 @@
       count: { countable: true },
       plugins: [
         function (hook) {
+          // Hide math from the markdown parser, which would otherwise eat
+          // backslash escapes (\\ row breaks, \; \, spacing) and underscores.
+          var stash = [];
+          hook.beforeEach(function (md) {
+            stash = [];
+            var parts = md.split(/(```[\s\S]*?```|`[^`\n]*`)/);
+            for (var i = 0; i < parts.length; i += 2) {
+              parts[i] = parts[i].replace(/\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/g, function (m) {
+                stash.push(m);
+                return 'KATEXSTASH' + (stash.length - 1) + 'X';
+              });
+            }
+            return parts.join('');
+          });
+          hook.afterEach(function (html) {
+            return html.replace(/KATEXSTASH(\d+)X/g, function (_, n) {
+              return stash[+n].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            });
+          });
           // Render math with KaTeX auto-render AFTER docsify writes the DOM,
           // so $...$ inside raw-HTML blocks (prereq / callout divs) also renders.
           hook.doneEach(function () {
